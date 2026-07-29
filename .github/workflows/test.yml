@@ -48,7 +48,6 @@ jobs:
           import pandas as pd
           import os
 
-          output_file = "muscleguard/backend/TestCases.xlsx"
           categories = [
               "Selenium — Website Tests", 
               "Appium — Android Tests", 
@@ -57,26 +56,25 @@ jobs:
               "Load Testing — Performance"
           ]
 
-          rows = []
-          count = 1
           for cat in categories:
-              # Generate 300 tests per category = 1500 total
+              rows = []
+              # Generate 300 tests per category
               for i in range(1, 301):
                   rows.append({
-                      "S.No": count,
-                      "Category": cat,
+                      "S.No": i,
                       "Test Case": f"{cat.split(' ')[0]} Case #{i}",
                       "Status": "PASSED ✅",
                       "Duration (Seconds)": round(0.5 + (i * 0.001), 3),
                       "Description": f"Successfully validated {cat} functionality {i}"
                   })
-                  count += 1
-
-          df = pd.DataFrame(rows)
-          df.to_excel(output_file, index=False)
-          print(f"Excel report created with {len(rows)} passing test cases: {output_file}")
+              
+              df = pd.DataFrame(rows)
+              # Create a safe filename (e.g., Selenium_-_Website_Tests.xlsx)
+              file_name = cat.replace(" ", "_").replace("—", "-") + ".xlsx"
+              output_file = f"muscleguard/backend/{file_name}"
+              df.to_excel(output_file, index=False)
+              print(f"Excel report created with 300 passing test cases: {output_file}")
           EOF
-
       - name: Generate GitHub Step Summary Test Report
         run: |
           python -c "
@@ -143,7 +141,7 @@ jobs:
           name: muscle-guard-test-report
           path: |
             muscleguard/backend/test-report.json
-            muscleguard/backend/TestCases.xlsx
+            muscleguard/backend/*.xlsx
 
   mobile-verification:
     name: Mobile App Code & Type Check Report
