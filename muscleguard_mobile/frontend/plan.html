@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuscleGuard AI — Workout Plan</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+<div class="container fade-in">
+
+  <div class="topbar">
+    <a href="index.html" class="logo">💪 MUSCLEGUARD AI</a>
+    <div class="stepper">
+      <div class="step step-done">✓ Profile</div>
+      <div class="step-line"></div>
+      <div class="step step-done">✓ Workouts</div>
+      <div class="step-line"></div>
+      <div class="step step-done">✓ Results</div>
+      <div class="step-line"></div>
+      <div class="step step-active">04 Plan</div>
+    </div>
+  </div>
+
+  <!-- BANNER -->
+  <div class="banner" id="banner">
+    <div>
+      <div class="banner-sub" id="banner-sub">7-Day Workout Schedule</div>
+      <div class="banner-title">MUSCLE PRESERVATION PLAN</div>
+    </div>
+    <div class="risk-badge" id="risk-badge">—</div>
+  </div>
+
+  <!-- INFO -->
+  <div class="alert" id="info-alert"></div>
+
+  <!-- DAY CARDS -->
+  <div class="day-grid" id="day-grid"></div>
+
+  <!-- VOLUME CHART -->
+  <div class="card" style="margin-top:1rem;">
+    <div class="card-title">📊 WEEKLY EXERCISE VOLUME</div>
+    <div id="vol-chart" style="height:220px;"></div>
+  </div>
+
+  <div class="btn-row">
+    <a href="results.html" class="btn btn-ghost">⬅ Back to Results</a>
+    <a href="index.html"   class="btn btn-ghost">🔄 Start Over</a>
+  </div>
+
+</div>
+<script src="js/api.js"></script>
+<script>
+checkAuth();
+const result   = store.get("result")  || {};
+const profile  = store.get("profile") || {};
+const exercise = store.get("exercise") || "Mixed";
+const pred     = result.prediction ?? 1;
+const DAYS_SHORT = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+const RISK = {
+  0:{ label:"LOW RISK",      cls:"risk-low",  color:"#22c55e" },
+  1:{ label:"MODERATE RISK", cls:"risk-mod",  color:"#eab308" },
+  2:{ label:"HIGH RISK",     cls:"risk-high", color:"#ef4444" },
+};
+const TIPS = {
+  0:"✅ You are at low risk. Maintain consistency and keep protein intake high.",
+  1:"⚠️ Moderate risk detected. Add more strength training and avoid skipping meals.",
+  2:"🔴 High risk! Prioritize recovery, reduce cardio volume and maximize protein.",
+};
+const TIP_CLS = { 0:"alert-green", 1:"alert-yellow", 2:"alert-red" };
+
+const r = RISK[pred];
+document.getElementById("banner").style.borderLeft = `4px solid ${r.color}`;
+document.getElementById("banner-sub").textContent  = `7-Day Workout Schedule · ${profile.name||"User"} · ${exercise}`;
+const badge = document.getElementById("risk-badge");
+badge.textContent = r.label; badge.className = "risk-badge " + r.cls;
+const alert = document.getElementById("info-alert");
+alert.textContent = TIPS[pred]; alert.className = "alert " + TIP_CLS[pred];
+
+// ── ALL 9 PLANS ──
+const PLANS = {
+  "0-Cardio":[
+    {day:"Monday",    focus:"Cardio Endurance",  active:true,  ex:[["Treadmill Run","3×20 min"],["Jump Rope","3×5 min"],["High Knees","3×30 reps"]]},
+    {day:"Tuesday",   focus:"Active Recovery",   active:false, ex:[["Brisk Walk","1×30 min"],["Stretching","1×15 min"]]},
+    {day:"Wednesday", focus:"HIIT Cardio",       active:true,  ex:[["Burpees","4×15 reps"],["Mountain Climbers","4×20 reps"],["Box Jumps","3×12 reps"]]},
+    {day:"Thursday",  focus:"Rest Day",          active:false, ex:[["Light Yoga","1×20 min"]]},
+    {day:"Friday",    focus:"Cardio + Core",     active:true,  ex:[["Cycling","3×20 min"],["Plank","3×60 sec"],["Leg Raises","3×15 reps"]]},
+    {day:"Saturday",  focus:"Long Cardio",       active:true,  ex:[["Outdoor Run","1×45 min"],["Cool-down Walk","1×10 min"]]},
+    {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+  ],
+  "0-Strength":[
+    {day:"Monday",    focus:"Upper Body Push",   active:true,  ex:[["Push-ups","3×15 reps"],["Dumbbell Press","3×12 reps"],["Lateral Raises","3×12 reps"]]},
+    {day:"Tuesday",   focus:"Lower Body",        active:true,  ex:[["Bodyweight Squats","4×15 reps"],["Lunges","3×12 reps"],["Calf Raises","3×20 reps"]]},
+    {day:"Wednesday", focus:"Active Recovery",   active:false, ex:[["Stretching","1×20 min"],["Brisk Walk","1×20 min"]]},
+    {day:"Thursday",  focus:"Upper Body Pull",   active:true,  ex:[["Dumbbell Rows","3×12 reps"],["Bicep Curls","3×12 reps"],["Face Pulls","3×15 reps"]]},
+    {day:"Friday",    focus:"Full Body",         active:true,  ex:[["Deadlifts","4×10 reps"],["Goblet Squats","3×12 reps"],["Plank","3×45 sec"]]},
+    {day:"Saturday",  focus:"Core & Mobility",   active:true,  ex:[["Crunches","3×20 reps"],["Russian Twists","3×16 reps"],["Hip Flexor Stretch","2×30 sec"]]},
+    {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Light Walk","1×20 min"]]},
+  ],
+  "0-Mixed":[
+    {day:"Monday",    focus:"Strength — Upper",  active:true,  ex:[["Push-ups","3×15 reps"],["Shoulder Press","3×12 reps"],["Tricep Dips","3×12 reps"]]},
+    {day:"Tuesday",   focus:"Cardio",            active:true,  ex:[["Treadmill Run","3×15 min"],["Jump Rope","3×3 min"]]},
+    {day:"Wednesday", focus:"Strength — Lower",  active:true,  ex:[["Squats","4×15 reps"],["Lunges","3×12 reps"],["Glute Bridges","3×15 reps"]]},
+    {day:"Thursday",  focus:"Rest Day",          active:false, ex:[["Yoga / Stretching","1×25 min"]]},
+    {day:"Friday",    focus:"HIIT",              active:true,  ex:[["Burpees","4×12 reps"],["Box Jumps","3×10 reps"],["Mountain Climbers","4×20 reps"]]},
+    {day:"Saturday",  focus:"Full Body Strength",active:true,  ex:[["Deadlifts","3×10 reps"],["Bent-over Rows","3×12 reps"],["Plank","3×60 sec"]]},
+    {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+  ],
+  "1-Cardio":[
+    {day:"Monday",    focus:"Moderate Cardio",   active:true,  ex:[["Treadmill Jog","3×15 min"],["Cycling","2×10 min"],["Step-ups","3×15 reps"]]},
+    {day:"Tuesday",   focus:"Strength Insert",   active:true,  ex:[["Bodyweight Squats","3×15 reps"],["Push-ups","3×12 reps"],["Plank","3×40 sec"]]},
+    {day:"Wednesday", focus:"Active Recovery",   active:false, ex:[["Walking","1×30 min"],["Stretching","1×15 min"]]},
+    {day:"Thursday",  focus:"Interval Cardio",   active:true,  ex:[["Sprint Intervals","6×1 min on/off"],["Jump Rope","3×3 min"]]},
+    {day:"Friday",    focus:"Strength + Cardio", active:true,  ex:[["Lunges","3×12 reps"],["Dumbbell Rows","3×12 reps"],["Rowing Machine","2×10 min"]]},
+    {day:"Saturday",  focus:"Light Cardio",      active:true,  ex:[["Brisk Walk","1×40 min"],["Core Stretches","1×10 min"]]},
+    {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+  ],
+  "1-Strength":[
+    {day:"Monday",    focus:"Push Day",          active:true,  ex:[["Bench Press","4×10 reps"],["Overhead Press","3×10 reps"],["Tricep Pushdowns","3×12 reps"]]},
+    {day:"Tuesday",   focus:"Pull Day",          active:true,  ex:[["Barbell Rows","4×10 reps"],["Lat Pulldowns","3×12 reps"],["Hammer Curls","3×12 reps"]]},
+    {day:"Wednesday", focus:"Active Recovery",   active:false, ex:[["Light Walk","1×20 min"],["Mobility Work","1×20 min"]]},
+    {day:"Thursday",  focus:"Leg Day",           active:true,  ex:[["Barbell Squats","4×10 reps"],["Romanian Deadlift","3×10 reps"],["Leg Press","3×12 reps"]]},
+    {day:"Friday",    focus:"Full Body",         active:true,  ex:[["Deadlifts","4×8 reps"],["Pull-ups","3×8 reps"],["Dumbbell Lunges","3×12 reps"]]},
+    {day:"Saturday",  focus:"Core & Arms",       active:true,  ex:[["Plank","4×60 sec"],["Bicep Curls","3×15 reps"],["Tricep Dips","3×15 reps"]]},
+    {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Stretching","1×20 min"]]},
+  ],
+  "1-Mixed":[
+    {day:"Monday",    focus:"Upper Strength",    active:true,  ex:[["Bench Press","4×10 reps"],["Dumbbell Rows","3×12 reps"],["Lateral Raises","3×12 reps"]]},
+    {day:"Tuesday",   focus:"Cardio",            active:true,  ex:[["Cycling","3×15 min"],["Jump Rope","3×3 min"]]},
+    {day:"Wednesday", focus:"Leg Strength",      active:true,  ex:[["Barbell Squats","4×10 reps"],["Leg Curls","3×12 reps"],["Calf Raises","3×20 reps"]]},
+    {day:"Thursday",  focus:"Active Recovery",   active:false, ex:[["Yoga","1×30 min"]]},
+    {day:"Friday",    focus:"HIIT + Core",       active:true,  ex:[["Burpees","4×12 reps"],["Plank","3×60 sec"],["Leg Raises","3×15 reps"]]},
+    {day:"Saturday",  focus:"Full Body Strength",active:true,  ex:[["Deadlifts","4×8 reps"],["Overhead Press","3×10 reps"],["Pull-ups","3×8 reps"]]},
+    {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+  ],
+  "2-Cardio":[
+    {day:"Monday",    focus:"Low-Impact Cardio", active:true,  ex:[["Walking","2×20 min"],["Light Cycling","2×10 min"]]},
+    {day:"Tuesday",   focus:"Muscle Retention",  active:true,  ex:[["Bodyweight Squats","3×15 reps"],["Push-ups","3×10 reps"],["Plank","3×30 sec"]]},
+    {day:"Wednesday", focus:"Rest Day",          active:false, ex:[["Stretching","1×20 min"]]},
+    {day:"Thursday",  focus:"Gentle Cardio",     active:true,  ex:[["Elliptical","2×15 min"],["Step-ups","2×12 reps"]]},
+    {day:"Friday",    focus:"Strength Focus",    active:true,  ex:[["Dumbbell Squats","3×12 reps"],["Dumbbell Rows","3×10 reps"],["Glute Bridges","3×15 reps"]]},
+    {day:"Saturday",  focus:"Light Activity",    active:true,  ex:[["Brisk Walk","1×30 min"],["Foam Rolling","1×10 min"]]},
+    {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Light Yoga","1×20 min"]]},
+  ],
+  "2-Strength":[
+    {day:"Monday",    focus:"Upper Body — Light",active:true,  ex:[["Push-ups","3×10 reps"],["Dumbbell Curls","3×10 reps"],["Overhead Press","3×8 reps"]]},
+    {day:"Tuesday",   focus:"Rest Day",          active:false, ex:[["Stretching","1×20 min"]]},
+    {day:"Wednesday", focus:"Lower Body — Light",active:true,  ex:[["Goblet Squats","3×10 reps"],["Glute Bridges","3×15 reps"],["Calf Raises","3×15 reps"]]},
+    {day:"Thursday",  focus:"Active Recovery",   active:false, ex:[["Walking","1×25 min"],["Mobility Work","1×15 min"]]},
+    {day:"Friday",    focus:"Full Body — Light", active:true,  ex:[["Deadlifts","3×8 reps"],["Dumbbell Rows","3×10 reps"],["Plank","3×40 sec"]]},
+    {day:"Saturday",  focus:"Core Stability",    active:true,  ex:[["Dead Bug","3×10 reps"],["Bird Dog","3×10 reps"],["Side Plank","3×30 sec each"]]},
+    {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+  ],
+  "2-Mixed":[
+    {day:"Monday",    focus:"Gentle Strength",   active:true,  ex:[["Push-ups","3×10 reps"],["Dumbbell Rows","3×10 reps"],["Plank","3×30 sec"]]},
+    {day:"Tuesday",   focus:"Low-Impact Cardio", active:true,  ex:[["Walking","1×30 min"],["Light Cycling","1×15 min"]]},
+    {day:"Wednesday", focus:"Rest Day",          active:false, ex:[["Stretching / Yoga","1×25 min"]]},
+    {day:"Thursday",  focus:"Lower Body — Light",active:true,  ex:[["Bodyweight Squats","3×12 reps"],["Glute Bridges","3×15 reps"],["Calf Raises","3×15 reps"]]},
+    {day:"Friday",    focus:"Cardio + Core",     active:true,  ex:[["Elliptical","2×15 min"],["Crunches","3×15 reps"],["Leg Raises","3×12 reps"]]},
+    {day:"Saturday",  focus:"Full Body — Light", active:true,  ex:[["Deadlifts","3×8 reps"],["Overhead Press","3×8 reps"],["Lat Pulldowns","3×10 reps"]]},
+    {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+  ],
+};
+
+const planKey  = `${pred}-${exercise}`;
+const plan     = PLANS[planKey] || PLANS["1-Mixed"];
+const accentColor = r.color;
+
+// Render day cards
+document.getElementById("day-grid").innerHTML = plan.map(d => `
+  <div class="day-card ${d.active ? "active-day" : "rest-day"}">
+    <div class="day-header">
+      <div class="day-name" style="color:${d.active ? "#e8eaf0" : "#6b7280"}">${d.day.toUpperCase()}</div>
+      <div class="focus-tag" style="background:${d.active ? `rgba(249,115,22,0.15)` : "rgba(55,65,81,0.5)"};color:${d.active ? accentColor : "#6b7280"}">
+        ${d.focus}
+      </div>
+    </div>
+    ${d.ex.map(([name, scheme]) => `
+      <div class="ex-row">
+        <span class="ex-name" style="color:${d.active ? "#e8eaf0" : "#6b7280"}">${name}</span>
+        <span class="ex-scheme" style="color:${d.active ? accentColor : "#6b7280"}">${scheme}</span>
+      </div>
+    `).join("")}
+  </div>
+`).join("");
+
+// Volume chart
+const sets = plan.map(d => {
+  return d.ex.reduce((sum, [,s]) => {
+    const m = s.match(/(\d+)[×x]/);
+    return sum + (m ? parseInt(m[1]) : 0);
+  }, 0);
+});
+const barColors = plan.map(d => d.active ? accentColor : "#374151");
+
+Plotly.newPlot("vol-chart", [{
+  x: DAYS_SHORT, y: sets, type:"bar",
+  marker:{ color: barColors, line:{color:"rgba(0,0,0,0)"} },
+  text: sets, textposition:"outside",
+  textfont:{ color:"#9ca3af", size:11, family:"JetBrains Mono" },
+}], {
+  paper_bgcolor:"rgba(0,0,0,0)", plot_bgcolor:"rgba(0,0,0,0)",
+  font:{ color:"#9ca3af", family:"DM Sans" },
+  height: 220, margin:{ t:20, b:20, l:20, r:20 },
+  xaxis:{ tickfont:{color:"#9ca3af"}, gridcolor:"rgba(0,0,0,0)" },
+  yaxis:{ title:"Total Sets", tickfont:{color:"#6b7280"}, gridcolor:"#1f2430", title_font:{color:"#6b7280"} },
+  showlegend: false,
+}, { displayModeBar: false });
+</script>
+</body>
+</html>

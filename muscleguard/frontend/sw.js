@@ -1,4 +1,4 @@
-const CACHE_NAME = "muscleguard-v11";
+const CACHE_NAME = "muscleguard-v21";
 
 const APP_SHELL_FILES = [
   "./",

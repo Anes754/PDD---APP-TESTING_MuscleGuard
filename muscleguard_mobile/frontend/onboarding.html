@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuscleGuard AI — Welcome</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body {
+    background: radial-gradient(circle at top left, #0f172a, #020617);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .onboard-card {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 32px;
+    padding: 3rem;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 40px 100px -20px rgba(0,0,0,0.8);
+  }
+  .onboard-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #60a5fa, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .onboard-sub {
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    font-size: 1.1rem;
+  }
+  .q-row {
+    margin-bottom: 2rem;
+  }
+  .q-label {
+    display: block;
+    color: white;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+  }
+  .q-val {
+    float: right;
+    color: #60a5fa;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  input[type="range"] {
+    width: 100%;
+    accent-color: #60a5fa;
+  }
+</style>
+</head>
+<body>
+
+<div class="onboard-card fade-in">
+  <div class="onboard-title">Step 1: Your Profile</div>
+  <div class="onboard-sub">Tell us about yourself to calibrate the AI model.</div>
+
+  <div class="q-row">
+    <label class="q-label">👤 Full Name
+      <input type="text" id="name" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:0.8rem;color:white;margin-top:0.5rem;" placeholder="Your Name">
+    </label>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+    <div class="q-row">
+      <label class="q-label">🎂 Age <span class="q-val" id="v-age">25</span></label>
+      <input type="range" id="age" min="15" max="80" value="25" oninput="document.getElementById('v-age').textContent = this.value">
+    </div>
+    <div class="q-row">
+      <label class="q-label">🚻 Gender
+        <select id="gender" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:0.8rem;color:white;margin-top:0.5rem;">
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="q-row">
+    <label class="q-label">📏 Height (cm) <span class="q-val" id="v-height">170</span></label>
+    <input type="range" id="height" min="100" max="230" value="170" oninput="document.getElementById('v-height').textContent = this.value">
+  </div>
+
+  <div class="q-row">
+    <label class="q-label">⚖️ Weight (kg) <span class="q-val" id="v-weight">75</span></label>
+    <input type="range" id="weight" min="40" max="200" value="75" oninput="document.getElementById('v-weight').textContent = this.value">
+  </div>
+
+  <div class="q-row">
+    <label class="q-label">🎯 Goal Weight (kg) <span class="q-val" id="v-goal">68</span></label>
+    <input type="range" id="goal" min="40" max="200" value="68" oninput="document.getElementById('v-goal').textContent = this.value">
+  </div>
+
+  <button class="btn" style="width:100%;padding:1.2rem;border-radius:16px;font-size:1.1rem;margin-top:1rem;" onclick="nextStep()">CONTINUE TO WORKOUTS ➜</button>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  checkAuth();
+  
+  function nextStep() {
+    const name = document.getElementById("name").value.trim();
+    if(!name) { alert("Please enter your name"); return; }
+    
+    const user = store.get("user");
+    const profile = {
+      user_id:     user.user_id,
+      name:        name,
+      age:         parseInt(document.getElementById("age").value),
+      gender:      document.getElementById("gender").value,
+      height:      parseFloat(document.getElementById("height").value),
+      weight:      parseFloat(document.getElementById("weight").value),
+      goal_weight: parseFloat(document.getElementById("goal").value),
+    };
+    
+    store.set("profile", profile);
+    navigateTo("workouts", "new_user=true");
+  }
+</script>
+
+
+</body>
+</html>

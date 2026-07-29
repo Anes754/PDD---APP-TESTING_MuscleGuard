@@ -3,96 +3,429 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MuscleGuard AI — Results</title>
+<title>MuscleGuard — Analytics & Diagnostic Results</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+  :root {
+    --card-bg: rgba(15, 23, 42, 0.65);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --card-hover-border: rgba(59, 130, 246, 0.3);
+    --accent-blue: #3b82f6;
+    --accent-purple: #8b5cf6;
+    --accent-cyan: #06b6d4;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+  }
+
+  body {
+    background: radial-gradient(circle at 50% 0%, #111827 0%, #030712 100%) !important;
+    color: var(--text-primary);
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  .analytics-wrapper {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+    box-sizing: border-box;
+  }
+
+  /* ── BANNER HEADER ── */
+  .analytics-banner {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  }
+
+  .banner-title-text {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #ffffff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .banner-sub-text {
+    font-size: 0.88rem;
+    color: var(--accent-blue);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.2rem;
+  }
+
+  .risk-badge {
+    padding: 0.6rem 1.4rem;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  }
+
+  .risk-low { background: rgba(34, 197, 94, 0.12); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+  .risk-mod { background: rgba(234, 179, 8, 0.12); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
+  .risk-high { background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+  /* ── 5-COLUMN METRIC CARDS ── */
+  .metrics-5-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+
+  @media (max-width: 1200px) {
+    .metrics-5-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .metrics-5-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .analytics-metric-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+
+  .analytics-metric-card:hover {
+    border-color: var(--card-hover-border);
+    transform: translateY(-2px);
+  }
+
+  .metric-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+  }
+
+  .metric-label-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .metric-icon-box {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  .metric-big-val {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+    letter-spacing: -0.5px;
+  }
+
+  .metric-sub-unit {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-top: 0.3rem;
+  }
+
+  /* ── THREE RISK PROBABILITY CARDS ── */
+  .risk-prob-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+
+  @media (max-width: 768px) {
+    .risk-prob-grid { grid-template-columns: 1fr; }
+  }
+
+  .risk-cat-card {
+    border-radius: 18px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(16px);
+    transition: transform 0.25s ease;
+  }
+
+  .risk-cat-card:hover {
+    transform: translateY(-2px);
+  }
+
+  /* ── SECTION PANELS ── */
+  .analytics-panel {
+    background: var(--card-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 22px;
+    padding: 1.5rem;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  }
+
+  .section-heading {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* ── DUAL CHARTS GRID ── */
+  .dual-charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+
+  @media (max-width: 1024px) {
+    .dual-charts-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── RECOMMENDATIONS GRID ── */
+  .reco-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+
+  .reco-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1.2rem;
+    transition: background 0.2s;
+  }
+
+  .reco-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .reco-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .reco-body {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .btn-action-row {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .btn-glow {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    border: none;
+    color: white;
+    padding: 0.75rem 1.75rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-glow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(59, 130, 246, 0.5);
+  }
+
+  .btn-outline {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--card-border);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-outline:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+</style>
 </head>
 <body>
-<div class="container fade-in">
 
-  <div class="topbar">
-    <a href="dashboard.html" class="logo">💪 MUSCLEGUARD AI</a>
-    <div class="stepper">
-      <div class="step step-done">✓ Profile</div>
-      <div class="step-line"></div>
-      <div class="step step-done">✓ Workouts</div>
-      <div class="step-line"></div>
-      <div class="step step-active">03 Results</div>
-    </div>
-  </div>
+<div class="analytics-wrapper">
 
-  <!-- BANNER -->
-  <div class="banner" id="banner">
+  <!-- BANNER HEADER -->
+  <div class="analytics-banner" id="banner">
     <div>
-      <div class="banner-sub" id="banner-sub">Muscle Loss Risk Assessment</div>
-      <div class="banner-title">AI ANALYSIS SUMMARY</div>
+      <div class="banner-sub-text" id="banner-sub">Muscle Loss Risk Assessment</div>
+      <h1 class="banner-title-text">Diagnostic Analysis</h1>
     </div>
-    <div class="risk-badge" id="risk-badge">—</div>
-  </div>
-
-  <!-- METRICS -->
-  <div class="metric-grid">
-    <div class="metric-card"><div class="metric-label">BMI</div><div class="metric-value" id="m-bmi">—</div></div>
-    <div class="metric-card"><div class="metric-label">Protein Target</div><div class="metric-value" id="m-prot">—</div><div class="metric-unit">g / day</div></div>
-    <div class="metric-card"><div class="metric-label">Avg Calories</div><div class="metric-value" id="m-cal">—</div><div class="metric-unit">kcal</div></div>
-    <div class="metric-card"><div class="metric-label">Avg Heart Rate</div><div class="metric-value" id="m-hr">—</div><div class="metric-unit">bpm</div></div>
-    <div class="metric-card"><div class="metric-label">Avg Intensity</div><div class="metric-value" id="m-int">—</div><div class="metric-unit">/ 10</div></div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.2rem;">
-    <div class="card" id="gauge-low-card" style="text-align:center;padding:1.5rem 1rem;transition:all 0.4s ease; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-      <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;">Low Risk</div>
-      <div id="gauge-low-val" style="font-size:2.8rem;font-weight:900;font-family:var(--fm);margin-top:0.8rem;line-height:1;">—</div>
-    </div>
-    <div class="card" id="gauge-mod-card" style="text-align:center;padding:1.5rem 1rem;transition:all 0.4s ease; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-      <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;">Moderate Risk</div>
-      <div id="gauge-mod-val" style="font-size:2.8rem;font-weight:900;font-family:var(--fm);margin-top:0.8rem;line-height:1;">—</div>
-    </div>
-    <div class="card" id="gauge-high-card" style="text-align:center;padding:1.5rem 1rem;transition:all 0.4s ease; display:flex; flex-direction:column; justify-content:center; align-items:center;">
-      <div style="font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700;">High Risk</div>
-      <div id="gauge-high-val" style="font-size:2.8rem;font-weight:900;font-family:var(--fm);margin-top:0.8rem;line-height:1;">—</div>
+    <div>
+      <span class="risk-badge" id="risk-badge">ANALYZING...</span>
     </div>
   </div>
 
-  <!-- BMI ZONE -->
-  <div class="card">
-    <div class="card-title">BMI ZONE</div>
-    <div id="bmi-zone" style="height:100px;"></div>
+  <!-- 5 KEY METRICS ROW -->
+  <div class="metrics-5-grid">
+    <!-- Metric 1: BMI -->
+    <div class="analytics-metric-card">
+      <div class="metric-header-flex">
+        <span class="metric-label-title">Body Mass Index</span>
+        <div class="metric-icon-box">⚖️</div>
+      </div>
+      <div class="metric-big-val" id="m-bmi">—</div>
+      <div class="metric-sub-unit">Healthy Range: 18.5–24.9</div>
+    </div>
+
+    <!-- Metric 2: Daily Protein Target -->
+    <div class="analytics-metric-card">
+      <div class="metric-header-flex">
+        <span class="metric-label-title">Daily Protein</span>
+        <div class="metric-icon-box">🥩</div>
+      </div>
+      <div class="metric-big-val" id="m-prot">—</div>
+      <div class="metric-sub-unit">g / day target</div>
+    </div>
+
+    <!-- Metric 3: Calories -->
+    <div class="analytics-metric-card">
+      <div class="metric-header-flex">
+        <span class="metric-label-title">Avg Energy Burn</span>
+        <div class="metric-icon-box">🔥</div>
+      </div>
+      <div class="metric-big-val" id="m-cal">—</div>
+      <div class="metric-sub-unit">kcal / workout</div>
+    </div>
+
+    <!-- Metric 4: Heart Rate -->
+    <div class="analytics-metric-card">
+      <div class="metric-header-flex">
+        <span class="metric-label-title">Avg Heart Rate</span>
+        <div class="metric-icon-box">❤️</div>
+      </div>
+      <div class="metric-big-val" id="m-hr">—</div>
+      <div class="metric-sub-unit">bpm average</div>
+    </div>
+
+    <!-- Metric 5: Intensity -->
+    <div class="analytics-metric-card">
+      <div class="metric-header-flex">
+        <span class="metric-label-title">Workout Intensity</span>
+        <div class="metric-icon-box">⚡</div>
+      </div>
+      <div class="metric-big-val" id="m-int">—</div>
+      <div class="metric-sub-unit">Scale out of 10</div>
+    </div>
   </div>
 
-  <!-- RADAR + TREND -->
-  <div style="display:grid;grid-template-columns:1fr;gap:1rem;margin-bottom:1.2rem;">
-    <div class="card">
-      <div class="card-title">FITNESS PROFILE</div>
-      <div id="radar" style="height:300px;"></div>
+  <!-- RISK PROBABILITY BREAKDOWN (3 CARDS) -->
+  <div class="risk-prob-grid">
+    <div class="risk-cat-card" id="gauge-low-card">
+      <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1.5px; font-weight:700;">🟢 Low Risk Probability</div>
+      <div id="gauge-low-val" style="font-size:3rem; font-weight:900; font-family:var(--fm, monospace); margin-top:0.6rem; line-height:1;">—</div>
     </div>
-    <div class="card">
-      <div class="card-title">WEEKLY CALORIE TREND</div>
-      <div id="trend" style="height:260px;"></div>
+
+    <div class="risk-cat-card" id="gauge-mod-card">
+      <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1.5px; font-weight:700;">🟡 Moderate Risk Probability</div>
+      <div id="gauge-mod-val" style="font-size:3rem; font-weight:900; font-family:var(--fm, monospace); margin-top:0.6rem; line-height:1;">—</div>
+    </div>
+
+    <div class="risk-cat-card" id="gauge-high-card">
+      <div style="font-size:0.75rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:1.5px; font-weight:700;">🔴 High Risk Probability</div>
+      <div id="gauge-high-val" style="font-size:3rem; font-weight:900; font-family:var(--fm, monospace); margin-top:0.6rem; line-height:1;">—</div>
     </div>
   </div>
 
+  <!-- BMI ZONE SECTION -->
+  <div class="analytics-panel">
+    <div class="section-heading">📊 Body Mass Index Classification Spectrum</div>
+    <div id="bmi-zone" style="height:110px;"></div>
+  </div>
 
+  <!-- DUAL CHARTS GRID (FITNESS RADAR + CALORIE TREND) -->
+  <div class="dual-charts-grid">
+    <div class="analytics-panel" style="margin-bottom:0;">
+      <div class="section-heading" style="color:var(--accent-cyan);">🎯 Multidimensional Fitness Radar</div>
+      <div id="radar" style="height:320px;"></div>
+    </div>
 
-  <!-- RECOMMENDATIONS -->
-  <div class="card">
-    <div class="card-title">RECOMMENDATIONS</div>
+    <div class="analytics-panel" style="margin-bottom:0;">
+      <div class="section-heading" style="color:var(--accent-purple);">📈 Weekly Caloric Expenditure Trend</div>
+      <div id="trend" style="height:320px;"></div>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATIONS SECTION -->
+  <div class="analytics-panel">
+    <div class="section-heading" style="color:#22c55e;">💡 Recommendation Engine</div>
     <div class="reco-grid" id="recos"></div>
   </div>
 
-  <div class="btn-row">
-    <a href="workouts.html" class="btn btn-ghost">⬅ Back</a>
-    <button class="btn" onclick="handleSave()" id="save-btn">💾 SAVE RESULT</button>
-    <a href="dashboard.html" class="btn">🏋️ GO TO DASHBOARD ➜</a>
+  <!-- ACTION BUTTONS -->
+  <div class="btn-action-row">
+    <a href="workouts.html" class="btn-outline">⬅ Back to Workouts</a>
+    <button class="btn-outline" onclick="handleSave()" id="save-btn">💾 Save Results</button>
+    <a href="dashboard.html" class="btn-glow">🏋️ Return to Dashboard ➜</a>
   </div>
 
 </div>
+
 <script src="js/api.js"></script>
 <script>
 const PLOTLY_LAYOUT = {
   paper_bgcolor: "rgba(0,0,0,0)",
   plot_bgcolor:  "rgba(0,0,0,0)",
-  font: { color: "#9ca3af", family: "DM Sans" },
+  font: { color: "#94a3b8", family: "DM Sans" },
   margin: { t: 20, b: 20, l: 20, r: 20 },
 };
 
@@ -106,8 +439,8 @@ const RISK = {
   2: { label: "HIGH RISK",     cls: "risk-high", color: "#ef4444" },
 };
 
-// ── Main page initialization ──────────────────────────────────────────────
 checkAuth();
+
 async function initResultsPage() {
   try {
     const res     = await apiHistory(user.user_id);
@@ -115,12 +448,11 @@ async function initResultsPage() {
 
     if (history.length === 0) {
       document.getElementById("banner-sub").textContent =
-        "No workout data yet. Complete your 7-day setup first.";
+        "No workout data yet. Complete your workout setup first.";
       document.getElementById("risk-badge").textContent = "—";
       return;
     }
 
-    // history[0] = most recent record
     const latest = history[0];
     const latestResult = {
       bmi:              latest.bmi,
@@ -138,7 +470,6 @@ async function initResultsPage() {
     };
     store.set("result", latestResult);
 
-    // history[1] = previous record → baseline for diff comparison
     let prevResult = null;
     if (history.length > 1) {
       const prev = history[1];
@@ -152,7 +483,6 @@ async function initResultsPage() {
       };
     }
 
-    // Calorie trend: last 7 records oldest→newest
     const last7 = history.slice(0, 7).reverse();
     const calorieHistory = last7.map(h => h.avg_calories || 0);
     while (calorieHistory.length < 7) calorieHistory.push(0);
@@ -169,51 +499,46 @@ async function initResultsPage() {
   }
 }
 
-
-// ── Format a metric value with a coloured diff badge ─────────────────────
 function metricHTML(val, prevVal, higherIsBetter) {
   if (prevVal == null) return `${val}`;
   const cur  = parseFloat(val);
   const base = parseFloat(prevVal);
   if (isNaN(cur) || isNaN(base)) return `${val}`;
   const diff = cur - base;
-  if (Math.abs(diff) < 0.001) return `${val} <span style="font-size:0.6rem;color:#71717a;">(=)</span>`;
+  if (Math.abs(diff) < 0.001) return `${val} <span style="font-size:0.75rem;color:#71717a;">(=)</span>`;
   const good  = higherIsBetter ? diff > 0 : diff < 0;
   const color = good ? "#22c55e" : "#ef4444";
   const sign  = diff > 0 ? "+" : "";
-  return `${val} <span style="font-size:0.6rem;color:${color};margin-left:3px;">(${sign}${diff.toFixed(2)})</span>`;
+  return `${val} <span style="font-size:0.75rem;color:${color};margin-left:4px;font-weight:700;">(${sign}${diff.toFixed(1)})</span>`;
 }
 
-// ── Main render function ──────────────────────────────────────────────────
 function renderResults(result, prev, calorieHistory) {
   const pred  = result.prediction ?? 1;
   const probs = result.probabilities || [0.1, 0.65, 0.25];
   const r     = RISK[pred] || RISK[1];
 
-  // Banner
-  document.getElementById("banner").style.borderLeft = `4px solid ${r.color}`;
-  document.getElementById("banner-sub").textContent  =
-    `Muscle Loss Risk Assessment · ${profile.name || user.username || "User"}`;
+  const bannerSub = document.getElementById("banner-sub");
+  if (bannerSub) {
+    bannerSub.textContent = `Muscle Loss Risk Assessment · ${profile.name || user.username || "User"}`;
+  }
+
   const badge = document.getElementById("risk-badge");
-  badge.textContent = r.label;
-  badge.className   = "risk-badge " + r.cls;
+  if (badge) {
+    badge.textContent = r.label;
+    badge.className   = "risk-badge " + r.cls;
+  }
 
   // Metrics with diff badges
-  document.getElementById("m-bmi").innerHTML  = metricHTML(
-    (result.bmi ?? 22.0).toFixed(1), prev ? (prev.bmi ?? 22.0).toFixed(1) : null, false);
-  document.getElementById("m-prot").innerHTML = metricHTML(
-    (result.protein_intake ?? 140).toFixed(0), prev ? (prev.protein_intake ?? 140).toFixed(0) : null, true);
-  document.getElementById("m-cal").innerHTML  = metricHTML(
-    (result.avg_calories ?? 0).toFixed(0), prev ? (prev.avg_calories ?? 0).toFixed(0) : null, true);
-  document.getElementById("m-hr").innerHTML   = metricHTML(
-    (result.avg_heart_rate ?? 0).toFixed(0), prev ? (prev.avg_heart_rate ?? 0).toFixed(0) : null, true);
-  document.getElementById("m-int").innerHTML  = metricHTML(
-    (result.avg_intensity ?? 0).toFixed(1), prev ? (prev.avg_intensity ?? 0).toFixed(1) : null, true);
+  if (document.getElementById("m-bmi")) document.getElementById("m-bmi").innerHTML = metricHTML((result.bmi ?? 22.0).toFixed(1), prev ? (prev.bmi ?? 22.0).toFixed(1) : null, false);
+  if (document.getElementById("m-prot")) document.getElementById("m-prot").innerHTML = metricHTML((result.protein_intake ?? 140).toFixed(0), prev ? (prev.protein_intake ?? 140).toFixed(0) : null, true);
+  if (document.getElementById("m-cal")) document.getElementById("m-cal").innerHTML = metricHTML((result.avg_calories ?? 0).toFixed(0), prev ? (prev.avg_calories ?? 0).toFixed(0) : null, true);
+  if (document.getElementById("m-hr")) document.getElementById("m-hr").innerHTML = metricHTML((result.avg_heart_rate ?? 0).toFixed(0), prev ? (prev.avg_heart_rate ?? 0).toFixed(0) : null, true);
+  if (document.getElementById("m-int")) document.getElementById("m-int").innerHTML = metricHTML((result.avg_intensity ?? 0).toFixed(1), prev ? (prev.avg_intensity ?? 0).toFixed(1) : null, true);
 
   // Risk gauges
-  gauge("gauge-low",  probs[0], "#30d158");
-  gauge("gauge-mod",  probs[1], "#ffd60a");
-  gauge("gauge-high", probs[2], "#ff453a");
+  gauge("gauge-low",  probs[0], "#22c55e");
+  gauge("gauge-mod",  probs[1], "#eab308");
+  gauge("gauge-high", probs[2], "#ef4444");
 
   // BMI Zone chart
   const bmi    = result.bmi ?? 22;
@@ -221,17 +546,17 @@ function renderResults(result, prev, calorieHistory) {
   Plotly.newPlot("bmi-zone", [
     { x:["Underweight\n<18.5","Normal\n18.5-24.9","Overweight\n25-29.9","Obese\n≥30"],
       y:[1,1,1,1], type:"bar",
-      marker:{ color:["rgba(10,132,255,0.15)","rgba(48,209,88,0.15)","rgba(255,159,10,0.2)","rgba(255,69,58,0.15)"] },
+      marker:{ color:["rgba(59,130,246,0.2)","rgba(34,197,94,0.25)","rgba(234,179,8,0.25)","rgba(239,68,68,0.25)"] },
       text:["<18.5","18.5–24.9","25–29.9","≥30"], textposition:"inside" }
   ], {
-    ...PLOTLY_LAYOUT, height: 100,
-    xaxis:{ tickfont:{ color:"#a1a1aa", size:10 }, gridcolor:"rgba(0,0,0,0)" },
+    ...PLOTLY_LAYOUT, height: 110,
+    xaxis:{ tickfont:{ color:"#94a3b8", size:11 }, gridcolor:"rgba(0,0,0,0)" },
     yaxis:{ visible: false },
     shapes:[{ type:"line", x0:bmiPct/33.3-0.5, x1:bmiPct/33.3-0.5, y0:0, y1:1.5,
-              line:{ color:"#ff9f0a", width:3, dash:"dot" } }],
+              line:{ color:"#3b82f6", width:3, dash:"dot" } }],
     annotations:[{ x:bmiPct/33.3-0.5, y:1.3, text:`<b>BMI ${bmi.toFixed(1)}</b>`,
-                   showarrow:false, font:{ color:"#ff9f0a", size:12 } }],
-  }, { displayModeBar:false });
+                   showarrow:false, font:{ color:"#3b82f6", size:12 } }],
+  }, { displayModeBar:false, responsive:true });
 
   // Fitness Radar
   const radarVals = [
@@ -244,30 +569,30 @@ function renderResults(result, prev, calorieHistory) {
   const radarCats = ["Calories","Duration","Heart Rate","Intensity","Protein"];
   Plotly.newPlot("radar", [{
     type:"scatterpolar", r:[...radarVals, radarVals[0]], theta:[...radarCats, radarCats[0]],
-    fill:"toself", fillcolor:"rgba(10,132,255,0.12)",
-    line:{ color:"#0a84ff", width:2 }, marker:{ color:"#0a84ff", size:5 }
+    fill:"toself", fillcolor:"rgba(6,182,212,0.15)",
+    line:{ color:"#06b6d4", width:2 }, marker:{ color:"#06b6d4", size:6 }
   }], {
-    ...PLOTLY_LAYOUT, height:300,
+    ...PLOTLY_LAYOUT, height:320,
     margin: { t: 40, b: 40, l: 50, r: 50 },
     polar:{
       bgcolor:"rgba(0,0,0,0)",
-      radialaxis:{ visible:true, range:[0,100], gridcolor:"rgba(255,255,255,0.06)", tickfont:{color:"#71717a",size:9} },
-      angularaxis:{ tickfont:{color:"#a1a1aa",size:11}, gridcolor:"rgba(255,255,255,0.06)" }
+      radialaxis:{ visible:true, range:[0,100], gridcolor:"rgba(255,255,255,0.06)", tickfont:{color:"#64748b",size:9} },
+      angularaxis:{ tickfont:{color:"#94a3b8",size:11}, gridcolor:"rgba(255,255,255,0.06)" }
     }
   }, { displayModeBar:false, responsive:true });
 
   // Weekly Calorie Trend
   Plotly.newPlot("trend", [{
     x:DAYS, y:calorieHistory, type:"scatter", mode:"lines+markers",
-    line:{ color:"#a855f7", width:2.5 },
-    marker:{ color:"#a855f7", size:7, line:{ color:"#080710", width:2 } },
-    fill:"tozeroy", fillcolor:"rgba(168,85,247,0.06)"
+    line:{ color:"#8b5cf6", width:3 },
+    marker:{ color:"#8b5cf6", size:8, line:{ color:"#070913", width:2 } },
+    fill:"tozeroy", fillcolor:"rgba(139,92,246,0.1)"
   }], {
-    ...PLOTLY_LAYOUT, height:260,
+    ...PLOTLY_LAYOUT, height:320,
     margin: { t: 20, b: 40, l: 50, r: 20 },
-    xaxis:{ tickfont:{color:"#a1a1aa", size:11}, gridcolor:"rgba(0,0,0,0)" },
-    yaxis:{ tickfont:{color:"#71717a", size:10}, gridcolor:"rgba(255,255,255,0.05)",
-            title:{text:"kcal",font:{color:"#71717a", size:11}} }
+    xaxis:{ tickfont:{color:"#94a3b8", size:11}, gridcolor:"rgba(0,0,0,0)" },
+    yaxis:{ tickfont:{color:"#64748b", size:10}, gridcolor:"rgba(255,255,255,0.05)",
+            title:{text:"kcal",font:{color:"#64748b", size:11}} }
   }, { displayModeBar:false, responsive:true });
 
   // Recommendations
@@ -275,109 +600,93 @@ function renderResults(result, prev, calorieHistory) {
   const intens = result.avg_intensity    ?? 5;
   const recosList = [
     wlr > 0.2
-      ? { title:"⚡ Weight Loss Too Aggressive", body:"Slowing deficit reduces muscle catabolism risk. Aim for 0.07–0.2 kg/day.", color:"#ff453a" }
+      ? { title:"⚡ Weight Loss Rate High", body:"Slowing caloric deficit reduces muscle catabolism risk. Aim for 0.07–0.2 kg/day.", color:"#ef4444" }
       : wlr < 0.07
-      ? { title:"🐢 Conservative Deficit",       body:"Safe pace — consider increasing activity slightly if desired.",          color:"#0a84ff" }
-      : { title:"✅ Healthy Fat Loss Range",      body:"Maintain current deficit and monitor weekly progress.",                 color:"#30d158" },
+      ? { title:"🐢 Conservative Deficit",   body:"Safe pace — consider increasing activity slightly if desired.",          color:"#3b82f6" }
+      : { title:"✅ Healthy Fat Loss Range",  body:"Maintain current deficit and monitor weekly progress.",                 color:"#22c55e" },
     intens < 4
-      ? { title:"📈 Increase Workout Intensity", body:"Higher intensity stimulates muscle retention signals.",                  color:"#0a84ff" }
+      ? { title:"📈 Workout Intensity Low", body:"Higher intensity stimulates muscle retention signals.",                  color:"#3b82f6" }
       : intens >= 8
-      ? { title:"🔄 Consider Recovery Days",     body:"High intensity every day risks overtraining and cortisol elevation.",   color:"#ffd60a" }
-      : { title:"💪 Good Intensity Balance",     body:"Stay consistent. Your intensity is in a healthy preservation zone.",    color:"#30d158" },
+      ? { title:"🔄 Recovery Days Advised", body:"High intensity every day risks overtraining and cortisol elevation.",   color:"#eab308" }
+      : { title:"💪 Good Intensity Balance", body:"Stay consistent. Your intensity is in a healthy preservation zone.",    color:"#22c55e" },
     bmi < 18.5
-      ? { title:`⚠️ Underweight BMI ${bmi.toFixed(1)}`, body:"Prioritize calorie surplus before any cutting phase.",          color:"#ffd60a" }
+      ? { title:`⚠️ Underweight BMI (${bmi.toFixed(1)})`, body:"Prioritize calorie surplus before any cutting phase.",      color:"#eab308" }
       : bmi <= 24.9
-      ? { title:`✅ Healthy BMI ${bmi.toFixed(1)}`,     body:"Focus on body composition rather than weight alone.",            color:"#30d158" }
+      ? { title:`✅ Healthy BMI (${bmi.toFixed(1)})`,     body:"Focus on body composition rather than weight alone.",            color:"#22c55e" }
       : bmi <= 29.9
-      ? { title:`📊 Overweight BMI ${bmi.toFixed(1)}`, body:"Strength training + moderate deficit is recommended.",            color:"#ffd60a" }
-      : { title:`🔴 Obese BMI ${bmi.toFixed(1)}`,      body:"Consult a physician before intense training programs.",           color:"#ff453a" },
+      ? { title:`📊 Overweight BMI (${bmi.toFixed(1)})`, body:"Strength training + moderate deficit is recommended.",            color:"#eab308" }
+      : { title:`🔴 Obese BMI (${bmi.toFixed(1)})`,      body:"Consult a physician before intense training programs.",           color:"#ef4444" },
   ];
 
   const recosEl = document.getElementById("recos");
-  recosEl.innerHTML = recosList.map(rec => `
-    <div class="reco-card" style="border-left:3px solid ${rec.color};">
-      <div class="reco-title" style="color:${rec.color}">${rec.title}</div>
-      <div class="reco-body">${rec.body}</div>
-    </div>
-  `).join("");
-
-  // Comparison summary card (only for existing users with previous data)
-  if (prev) {
-    const calDiff = (result.avg_calories  ?? 0) - (prev.avg_calories  ?? 0);
-    const intDiff = (result.avg_intensity ?? 0) - (prev.avg_intensity ?? 0);
-    const bmiDiff = (result.bmi ?? 0)           - (prev.bmi           ?? 0);
-    const compCard = document.createElement("div");
-    compCard.className = "reco-card";
-    compCard.style.borderLeft = "3px solid #6366f1";
-    compCard.innerHTML = `
-      <div class="reco-title" style="color:#6366f1">📊 Today vs Previous Log</div>
-      <div class="reco-body">
-        Calories: <b style="color:${calDiff>=0?'#22c55e':'#ef4444'}">${calDiff>=0?'+':''}${calDiff.toFixed(0)} kcal</b>
-        &nbsp;|&nbsp;
-        Intensity: <b style="color:${intDiff>=0?'#22c55e':'#ef4444'}">${intDiff>=0?'+':''}${intDiff.toFixed(1)}</b>
-        &nbsp;|&nbsp;
-        BMI: <b style="color:${bmiDiff<=0?'#22c55e':'#ef4444'}">${bmiDiff>=0?'+':''}${bmiDiff.toFixed(2)}</b>
+  if (recosEl) {
+    recosEl.innerHTML = recosList.map(rec => `
+      <div class="reco-card" style="border-left:3px solid ${rec.color};">
+        <div class="reco-title" style="color:${rec.color}">${rec.title}</div>
+        <div class="reco-body">${rec.body}</div>
       </div>
-    `;
-    recosEl.insertBefore(compCard, recosEl.firstChild);
+    `).join("");
+
+    if (prev) {
+      const calDiff = (result.avg_calories  ?? 0) - (prev.avg_calories  ?? 0);
+      const intDiff = (result.avg_intensity ?? 0) - (prev.avg_intensity ?? 0);
+      const bmiDiff = (result.bmi ?? 0)           - (prev.bmi           ?? 0);
+      const compCard = document.createElement("div");
+      compCard.className = "reco-card";
+      compCard.style.borderLeft = "3px solid #8b5cf6";
+      compCard.innerHTML = `
+        <div class="reco-title" style="color:#8b5cf6">📊 Today vs Previous Log</div>
+        <div class="reco-body">
+          Calories: <b style="color:${calDiff>=0?'#22c55e':'#ef4444'}">${calDiff>=0?'+':''}${calDiff.toFixed(0)} kcal</b>
+          &nbsp;|&nbsp;
+          Intensity: <b style="color:${intDiff>=0?'#22c55e':'#ef4444'}">${intDiff>=0?'+':''}${intDiff.toFixed(1)}</b>
+          &nbsp;|&nbsp;
+          BMI: <b style="color:${bmiDiff<=0?'#22c55e':'#ef4444'}">${bmiDiff>=0?'+':''}${bmiDiff.toFixed(2)}</b>
+        </div>
+      `;
+      recosEl.insertBefore(compCard, recosEl.firstChild);
+    }
   }
 }
 
 function gauge(id, val, color) {
   const pct = Math.round((val ?? 0) * 100);
 
-  // Update text value
   const valEl = document.getElementById(id + "-val");
   if (valEl) {
     valEl.textContent = pct + "%";
-    // Adjust text color dynamically for optimal readability
-    if (pct > 45) {
-      valEl.style.color = "#ffffff";
-    } else {
-      valEl.style.color = color;
-    }
+    valEl.style.color = color;
   }
 
-  // Dynamically tint the parent card based on percentage
   const card = document.getElementById(id + "-card");
   if (!card) return;
 
-  // Adjust label text color dynamically for contrast
-  const labelEl = card.querySelector("div:first-child");
-  if (labelEl) {
-    if (pct > 45) {
-      labelEl.style.color = "rgba(255, 255, 255, 0.75)";
-    } else {
-      labelEl.style.color = "var(--muted)";
-    }
-  }
-
-  const opacityBg = 0.03 + (pct / 100) * 0.62; // scale opacity from 3% to 65%
-  const opacityBorder = 0.08 + (pct / 100) * 0.72; // scale border opacity from 8% to 80%
-
   let bg, border;
-  if (color === "#30d158") {
-    bg     = `rgba(48, 209, 88, ${opacityBg})`;
-    border = `rgba(48, 209, 88, ${opacityBorder})`;
-  } else if (color === "#ffd60a") {
-    bg     = `rgba(255, 214, 10, ${opacityBg})`;
-    border = `rgba(255, 214, 10, ${opacityBorder})`;
-  } else if (color === "#ff453a") {
-    bg     = `rgba(255, 69, 58, ${opacityBg})`;
-    border = `rgba(255, 69, 58, ${opacityBorder})`;
+  if (color === "#22c55e") {
+    bg     = "rgba(34, 197, 94, 0.08)";
+    border = "rgba(34, 197, 94, 0.25)";
+  } else if (color === "#eab308") {
+    bg     = "rgba(234, 179, 8, 0.08)";
+    border = "rgba(234, 179, 8, 0.25)";
+  } else if (color === "#ef4444") {
+    bg     = "rgba(239, 68, 68, 0.08)";
+    border = "rgba(239, 68, 68, 0.25)";
   } else {
     bg     = "rgba(255,255,255,0.02)";
     border = "rgba(255,255,255,0.08)";
   }
   card.style.background  = bg;
   card.style.borderColor = border;
+  card.style.borderWidth = "1px";
+  card.style.borderStyle = "solid";
 }
 
-// ── Save result ───────────────────────────────────────────────────────────
 async function handleSave() {
   const btn = document.getElementById("save-btn");
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = 'Saving...';
+  }
 
   const currentResult = store.get("result") || {};
   try {
@@ -401,15 +710,16 @@ async function handleSave() {
     });
     showToast("✅ Result successfully saved!");
     triggerDynamicIsland("Result Saved", "Muscle analysis synced!", "💾");
-    btn.innerHTML = "✅ SAVED";
+    if (btn) btn.innerHTML = "✅ Saved";
   } catch (e) {
     showToast("Save failed: " + e.message, "#ef4444");
-    btn.disabled = false;
-    btn.innerHTML = "💾 SAVE RESULT";
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = "💾 Save Results";
+    }
   }
 }
 
-// ── Boot ──────────────────────────────────────────────────────────────────
 initResultsPage();
 </script>
 </body>

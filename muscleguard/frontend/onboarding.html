@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MuscleGuard AI — Welcome</title>
+<title>MuscleGuard — Welcome</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
   body {
@@ -25,7 +25,7 @@
     box-shadow: 0 40px 100px -20px rgba(0,0,0,0.8);
   }
   .onboard-title {
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     font-weight: 800;
     margin-bottom: 0.5rem;
     background: linear-gradient(to right, #60a5fa, #a855f7);
@@ -34,19 +34,23 @@
   }
   .onboard-sub {
     color: var(--muted);
+    font-size: 0.95rem;
     margin-bottom: 2.5rem;
-    font-size: 1.1rem;
   }
   .q-row {
-    margin-bottom: 2rem;
+    margin-bottom: 1.8rem;
   }
   .q-label {
     display: block;
-    color: white;
     font-size: 0.9rem;
-    margin-bottom: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    color: var(--text);
+  }
+  .q-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
     opacity: 0.8;
   }
   .q-val {
@@ -65,7 +69,7 @@
 
 <div class="onboard-card fade-in">
   <div class="onboard-title">Step 1: Your Profile</div>
-  <div class="onboard-sub">Tell us about yourself to calibrate the AI model.</div>
+  <div class="onboard-sub">Tell us about yourself to calibrate your profile metrics.</div>
 
   <div class="q-row">
     <label class="q-label">👤 Full Name

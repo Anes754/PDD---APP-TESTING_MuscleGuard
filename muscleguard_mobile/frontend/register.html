@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuscleGuard AI — Register</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body {
+    background: radial-gradient(circle at top right, #1e1b4b, #020617);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+  }
+  .login-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 3rem 2rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    text-align: center;
+  }
+  .login-logo {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    background: linear-gradient(to right, #60a5fa, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 2rem;
+    display: block;
+  }
+  .login-field {
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+  .login-field label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .login-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    color: white;
+    font-family: inherit;
+    transition: all 0.3s;
+  }
+  .login-input:focus {
+    outline: none;
+    border-color: #60a5fa;
+    background: rgba(255,255,255,0.08);
+  }
+  .btn-login {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .login-footer {
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  .login-footer a {
+    color: #60a5fa;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="login-card fade-in">
+  <span class="login-logo">💪 MUSCLEGUARD AI</span>
+  <h2 style="color:var(--text);margin-bottom:0.8rem;font-weight:700">Create Account</h2>
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:2rem;">Join the Nexus to start monitoring your muscle preservation.</p>
+  
+  <div class="role-toggle">
+    <button type="button" class="role-btn active" id="role-client" onclick="selectRole('client')">Client</button>
+    <button type="button" class="role-btn" id="role-coach" onclick="selectRole('coach')">Coach</button>
+  </div>
+
+  <div class="login-field">
+    <label>Choose Username</label>
+    <input type="text" id="username" class="login-input" placeholder="Enter username">
+  </div>
+  
+  <div class="login-field">
+    <label>Create Password</label>
+    <input type="password" id="password" class="login-input" placeholder="••••••••">
+  </div>
+
+  <div class="login-field" id="coach-code-field">
+    <label>Coach Code (Optional)</label>
+    <input type="text" id="coach_code" class="login-input" placeholder="E.G. ABCDEF" style="text-transform:uppercase; font-family:var(--fm)">
+  </div>
+  
+  <button class="btn btn-login" id="btn-reg" onclick="handleRegister()">CREATE ACCOUNT</button>
+  
+  <div class="login-footer">
+    Already have an account? <a href="login.html">Sign In</a>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  checkAuth();
+  let selectedRole = "client";
+
+  function selectRole(role) {
+    selectedRole = role;
+    document.getElementById("role-client").classList.toggle("active", role === "client");
+    document.getElementById("role-coach").classList.toggle("active", role === "coach");
+    document.getElementById("coach-code-field").style.display = (role === "client") ? "block" : "none";
+  }
+
+  async function handleRegister() {
+    const user = document.getElementById("username").value.trim();
+    const pass = document.getElementById("password").value.trim();
+    const btn  = document.getElementById("btn-reg");
+    
+    if(!user || !pass) {
+      showToast("Please fill in all fields", "#ef4444");
+      return;
+    }
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> CREATING...';
+    
+    try {
+      const res = await apiRegister(user, pass, selectedRole);
+      if(res.success) {
+        store.set("user", res.user);
+        
+        if (selectedRole === "coach") {
+          showToast(`Coach created successfully! Code: ${res.user.coach_code}`, "#3b82f6");
+          setTimeout(() => {
+            navigateTo("coach-dashboard");
+          }, 3000);
+        } else {
+          showToast("Account created successfully!");
+          const coachCode = document.getElementById("coach_code").value.trim();
+          if (coachCode) {
+            try {
+              await apiLinkCoach(res.user.user_id, coachCode);
+              showToast("Linked to coach successfully!");
+            } catch (err) {
+              showToast("Failed to link coach: " + err.message, "#eab308");
+            }
+          }
+          setTimeout(() => {
+            navigateTo("onboarding");
+          }, 1500);
+        }
+      }
+    } catch(e) {
+      showToast(e.message, "#ef4444");
+      btn.disabled = false;
+      btn.innerHTML = "CREATE ACCOUNT";
+    }
+  }
+</script>
+
+</body>
+</html>

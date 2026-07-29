@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuscleGuard AI — Profile</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container fade-in">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <span class="logo">💪 MUSCLEGUARD AI</span>
+    <div class="stepper">
+      <a href="dashboard.html" class="btn btn-ghost" style="padding:0.4rem 1rem;font-size:0.8rem;">⬅ BACK TO DASHBOARD</a>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-title">PROFILE SETTINGS</div>
+    <div class="hero-sub">Update your personal details and muscle targets</div>
+  </div>
+
+  <!-- FORM -->
+  <div class="card">
+    <div class="card-title">PERSONAL INFORMATION</div>
+    <div class="form-grid">
+      <div class="field">
+        <label>🆔 User ID</label>
+        <input type="number" id="user_id" value="1001" min="1">
+      </div>
+      <div class="field">
+        <label>👤 Full Name</label>
+        <input type="text" id="name" placeholder="Enter your name">
+      </div>
+      <div class="field">
+        <label>🎂 Age</label>
+        <input type="number" id="age" value="25" min="15" max="80">
+      </div>
+      <div class="field">
+        <label>🚻 Gender</label>
+        <select id="gender">
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>📏 Height (cm)</label>
+        <input type="number" id="height" value="170" min="100" max="250" oninput="updateBMI()">
+      </div>
+      <div class="field">
+        <label>⚖️ Current Weight (kg)</label>
+        <input type="number" id="weight" value="75" min="30" max="250" oninput="updateBMI(); updateGoalRange()">
+      </div>
+    </div>
+
+    <!-- GOAL WEIGHT SLIDER -->
+    <div class="slider-wrap">
+      <label>🎯 Goal Weight (kg) — <span id="goal-val" style="color:var(--accent);font-family:var(--fm)">68 kg</span></label>
+      <input type="range" id="goal_weight" min="40" max="120" value="68" oninput="document.getElementById('goal-val').textContent = this.value + ' kg'">
+    </div>
+
+    <!-- LIVE BMI -->
+    <div class="bmi-preview">
+      <span class="bmi-label">Live BMI</span>
+      <span class="bmi-number" id="bmi-num" style="color:#eab308">26.0</span>
+      <span class="bmi-category" id="bmi-cat">Overweight range</span>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="handleContinue(event)">SAVE PROFILE ➜</button>
+  </div>
+
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  checkAuth();
+
+  // Init from session
+  const saved = store.get("profile");
+  if (saved) {
+    document.getElementById("user_id").value    = saved.user_id || 1001;
+    document.getElementById("name").value       = saved.name    || "";
+    document.getElementById("age").value        = saved.age     || 25;
+    document.getElementById("gender").value     = saved.gender  || "Male";
+    document.getElementById("height").value     = saved.height  || 170;
+    document.getElementById("weight").value     = saved.weight  || 75;
+    document.getElementById("goal_weight").value = saved.goal_weight || 68;
+    document.getElementById("goal-val").textContent = (saved.goal_weight || 68) + " kg";
+  }
+  updateBMI();
+
+  function updateBMI() {
+    const w = parseFloat(document.getElementById("weight").value) || 70;
+    const h = parseFloat(document.getElementById("height").value) || 170;
+    const bmi = calcBMI(w, h);
+    const { label, color } = bmiCategory(bmi);
+    document.getElementById("bmi-num").textContent = bmi.toFixed(1);
+    document.getElementById("bmi-num").style.color = color;
+    document.getElementById("bmi-cat").textContent = label + " range";
+  }
+
+  function updateGoalRange() {
+    const w = parseFloat(document.getElementById("weight").value) || 75;
+    const s = document.getElementById("goal_weight");
+    s.min = Math.round(w * 0.5);
+    s.max = Math.round(w * 1.3);
+    if (parseFloat(s.value) > s.max) s.value = s.max;
+    if (parseFloat(s.value) < s.min) s.value = s.min;
+    document.getElementById("goal-val").textContent = s.value + " kg";
+  }
+
+  function handleContinue(event) {
+    const profile = {
+      user_id:     document.getElementById("user_id").value,
+      name:        document.getElementById("name").value,
+      age:         parseInt(document.getElementById("age").value),
+      gender:      document.getElementById("gender").value,
+      height:      parseFloat(document.getElementById("height").value),
+      weight:      parseFloat(document.getElementById("weight").value),
+      goal_weight: parseFloat(document.getElementById("goal_weight").value),
+    };
+    
+    const btn = event ? event.target : document.querySelector(".btn");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> SAVING...';
+
+    apiSaveProfile(profile).then(() => {
+      store.set("profile", profile);
+      showToast("Profile updated!");
+      setTimeout(() => navigateTo("dashboard"), 800);
+    }).catch(e => {
+      showToast("Error: " + e.message, "#ef4444");
+      btn.disabled = false;
+      btn.innerHTML = "SAVE PROFILE ➜";
+    });
+  }
+</script>
+</body>
+</html>

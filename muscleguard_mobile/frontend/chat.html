@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuscleGuard AI — Messaging Center</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  :root {
+    --bg-main: #020617;
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+  }
+  body {
+    background: var(--bg-main);
+    color: #f8fafc;
+    margin: 0;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .chat-layout {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  .panel {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 1.5rem;
+    height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+  }
+  .chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 1rem;
+  }
+  .chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+  .chat-messages::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+    border-radius: 99px;
+  }
+  .chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.1);
+    border-radius: 99px;
+  }
+  .chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.2);
+  }
+</style>
+</head>
+<body>
+
+<div class="chat-layout">
+  <div class="panel fade-in">
+    <div class="chat-header">
+      <div style="display:flex;align-items:center;gap:0.8rem;">
+        <button onclick="navigateTo('dashboard')" style="background:none;border:none;color:#60a5fa;font-size:1.2rem;cursor:pointer;padding:0.2rem 0.5rem;display:flex;align-items:center;">←</button>
+        <div>
+          <h2 style="margin:0;font-size:1.2rem;font-weight:700;" id="chat-partner-name">Coach Chat</h2>
+          <span style="font-size:0.75rem;color:var(--muted);" id="chat-partner-sub">Direct Coaching Channel</span>
+        </div>
+      </div>
+      <div id="unread-pill" style="display:none;background:var(--red);color:white;font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:99px;">UNREAD</div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="chat-tabs">
+      <button class="chat-tab active" id="tab-coach" onclick="switchTab('coach')">💬 Coach Chat</button>
+      <button class="chat-tab" id="tab-bot" onclick="switchTab('bot')">🤖 AI Fitness Bot</button>
+    </div>
+
+    <!-- Main Message Area -->
+    <div class="chat-messages" id="chat-messages-container">
+      <!-- Loaded dynamically -->
+    </div>
+
+    <!-- Unlinked Coach Placeholder (Hidden by default) -->
+    <div id="link-coach-overlay" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;">
+      <div style="font-size:4rem;margin-bottom:1rem;">🤝</div>
+      <h3 style="margin:0;font-size:1.3rem;font-weight:700;">Connect with a Personal Trainer</h3>
+      <p style="color:var(--muted);max-width:400px;font-size:0.9rem;margin:0.5rem 0 1.5rem 0;">Enter your coach's invitation code to link accounts. Your coach will be able to review your workouts, risk levels, and send personalized recommendations.</p>
+      <div class="link-coach-section" style="width:100%;max-width:320px;">
+        <label style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;text-align:left;">Coach Invitation Code</label>
+        <input type="text" id="coach-code-input" placeholder="E.G. A4F8B3" style="text-align:center;">
+        <button class="btn btn-login" style="margin-top:1rem;width:100%;" onclick="linkCoachDirect()">LINK TRAINER</button>
+      </div>
+    </div>
+
+    <!-- Input Bar -->
+    <div class="chat-input-bar" id="chat-input-area">
+      <input type="text" class="chat-input" id="message-text" placeholder="Type your message here..." onkeypress="handleKeyPress(event)">
+      <button class="chat-send-btn" id="btn-send" onclick="sendMessage()">Send</button>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  checkAuth();
+  const user = store.get("user");
+  
+  if (!user || user.role !== "client") {
+    logout();
+  }
+
+  let activeTab = "coach"; // "coach" or "bot"
+  let coach = null;
+  let coachPollTimer = null;
+
+  async function init() {
+    // 1. Fetch Linked Coach
+    try {
+      coach = await apiGetClientCoach(user.user_id);
+      if (coach) {
+        document.getElementById("chat-partner-name").textContent = `Coach ${coach.name}`;
+        document.getElementById("chat-partner-sub").textContent = "Online Training Channel";
+        document.getElementById("link-coach-overlay").style.display = "none";
+        document.getElementById("chat-messages-container").style.display = "flex";
+        document.getElementById("chat-input-area").style.display = "flex";
+        await loadCoachMessages();
+        
+        // Start polling for new coach messages every 5 seconds
+        coachPollTimer = setInterval(loadCoachMessages, 5000);
+      } else {
+        showUnlinkedUI();
+      }
+    } catch (err) {
+      console.error(err);
+      showUnlinkedUI();
+    }
+  }
+
+  function showUnlinkedUI() {
+    document.getElementById("chat-partner-name").textContent = "Coach Offline";
+    document.getElementById("chat-partner-sub").textContent = "No trainer linked";
+    document.getElementById("chat-messages-container").style.display = "none";
+    document.getElementById("chat-input-area").style.display = "none";
+    document.getElementById("link-coach-overlay").style.display = "flex";
+  }
+
+  function switchTab(tab) {
+    if (tab === activeTab) return;
+    activeTab = tab;
+    
+    document.getElementById("tab-coach").classList.toggle("active", tab === "coach");
+    document.getElementById("tab-bot").classList.toggle("active", tab === "bot");
+    
+    const container = document.getElementById("chat-messages-container");
+    container.innerHTML = "";
+    
+    if (tab === "coach") {
+      // Direct Coach Chat
+      if (coach) {
+        document.getElementById("chat-partner-name").textContent = `Coach ${coach.name}`;
+        document.getElementById("chat-partner-sub").textContent = "Online Training Channel";
+        document.getElementById("link-coach-overlay").style.display = "none";
+        container.style.display = "flex";
+        document.getElementById("chat-input-area").style.display = "flex";
+        loadCoachMessages();
+        
+        // Restart polling
+        if (!coachPollTimer) {
+          coachPollTimer = setInterval(loadCoachMessages, 5000);
+        }
+      } else {
+        showUnlinkedUI();
+      }
+    } else {
+      // AI Fitness Bot Chat
+      clearInterval(coachPollTimer);
+      coachPollTimer = null;
+      
+      document.getElementById("chat-partner-name").textContent = "AI Fitness Assistant";
+      document.getElementById("chat-partner-sub").textContent = "Local Data-Driven Bot";
+      document.getElementById("link-coach-overlay").style.display = "none";
+      container.style.display = "flex";
+      document.getElementById("chat-input-area").style.display = "flex";
+      
+      loadBotMessages();
+    }
+  }
+
+  async function loadCoachMessages() {
+    if (activeTab !== "coach" || !coach) return;
+    try {
+      const res = await apiGetMessages(user.user_id, coach.coach_id);
+      const msgs = res.messages || [];
+      renderMessages(msgs, coach.coach_id);
+      
+      // Mark read
+      await apiMarkRead(user.user_id, coach.coach_id);
+    } catch (err) {
+      console.error("Error loading coach chat: ", err);
+    }
+  }
+
+  async function loadBotMessages() {
+    if (activeTab !== "bot") return;
+    try {
+      const res = await apiGetMessages(user.user_id, "bot");
+      const msgs = res.messages || [];
+      
+      if (msgs.length === 0) {
+        // Welcome message from bot
+        const container = document.getElementById("chat-messages-container");
+        container.innerHTML = `
+          <div class="msg-bubble msg-bot">
+            Hi ${user.name}! I'm your local AI health assistant. I analyze your profile and historical metrics (protein intake, muscle loss risk, average workout intensity, and weight goals) to answer your training questions.<br><br>
+            Ask me things like:<br>
+            • <em>"Am I eating enough protein?"</em><br>
+            • <em>"What is my muscle loss risk score?"</em><br>
+            • <em>"How are my workouts looking?"</em><br>
+            • <em>"How is my weight progress?"</em>
+          </div>
+        `;
+        return;
+      }
+      
+      renderMessages(msgs, "bot");
+    } catch (err) {
+      console.error("Error loading bot history: ", err);
+    }
+  }
+
+  function renderMessages(msgs, otherId) {
+    const container = document.getElementById("chat-messages-container");
+    const wasScrolledBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 30;
+
+    container.innerHTML = msgs.map(m => {
+      const isSent = m.sender_id === user.user_id;
+      let bubbleClass = isSent ? "msg-sent" : "msg-received";
+      if (m.sender_id === "bot") {
+        bubbleClass = "msg-bot";
+      }
+      
+      const time = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      let label = "";
+      if (m.msg_type === "suggestion") {
+        label = `<div class="msg-label" style="color:#fb923c">Coach Suggestion</div>`;
+      } else if (m.sender_id === "bot") {
+        label = `<div class="msg-label" style="color:#60a5fa">AI Assistant</div>`;
+      }
+
+      return `
+        <div class="msg-bubble ${bubbleClass}">
+          ${label}
+          <div>${m.content}</div>
+          <div class="msg-time" style="text-align:right;">${time}</div>
+        </div>
+      `;
+    }).join("");
+
+    if (wasScrolledBottom || container.scrollTop === 0) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById("message-text");
+    const content = input.value.trim();
+    if (!content) return;
+
+    input.value = "";
+
+    if (activeTab === "coach") {
+      if (!coach) return;
+      try {
+        const res = await apiSendMessage(user.user_id, coach.coach_id, content, "message");
+        if (res.success) {
+          await loadCoachMessages();
+        }
+      } catch (err) {
+        showToast("Error sending: " + err.message, "#ef4444");
+      }
+    } else {
+      // Append client question locally instantly for fluid UX
+      const container = document.getElementById("chat-messages-container");
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      container.innerHTML += `
+        <div class="msg-bubble msg-sent">
+          <div>${content}</div>
+          <div class="msg-time" style="text-align:right;">${time}</div>
+        </div>
+      `;
+      container.scrollTop = container.scrollHeight;
+
+      // Ask Bot
+      try {
+        const res = await apiBotAsk(user.user_id, content);
+        if (res.success) {
+          await loadBotMessages();
+        }
+      } catch (err) {
+        showToast("Bot failed: " + err.message, "#ef4444");
+      }
+    }
+  }
+
+  function handleKeyPress(e) {
+    if (e.key === "Enter") {
+      sendMessage();
+    }
+  }
+
+  async function linkCoachDirect() {
+    const input = document.getElementById("coach-code-input");
+    const code = input.value.trim();
+    
+    if (!code) {
+      showToast("Please enter a coach invitation code", "#ef4444");
+      return;
+    }
+
+    try {
+      const res = await apiLinkCoach(user.user_id, code);
+      if (res.success) {
+        showToast(res.message);
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      } else {
+        throw new Error(res.message || "Link failed");
+      }
+    } catch (err) {
+      showToast(err.message, "#ef4444");
+    }
+  }
+
+  // Cleanup on navigate away
+  window.addEventListener("beforeunload", () => {
+    clearInterval(coachPollTimer);
+  });
+
+  init();
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from schemas import SaveResultRequest
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -72,8 +72,9 @@ async def save_many_predictions(records: list):
     """Save multiple records (for onboarding)."""
     if not records:
         return
-    for r in records:
-        r["timestamp"] = datetime.utcnow().isoformat()
+    now = datetime.utcnow()
+    for i, r in enumerate(records):
+        r["timestamp"] = (now + timedelta(seconds=i)).isoformat()
     await predictions_col.insert_many(records)
 
 async def get_history(user_id: str) -> list:

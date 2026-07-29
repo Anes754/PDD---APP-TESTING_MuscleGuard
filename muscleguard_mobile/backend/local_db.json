@@ -1,0 +1,192 @@
+{
+  "predictions": [
+    {
+      "user_id": "1108",
+      "name": "Anes Mohamed D",
+      "age": 35,
+      "weight": 72,
+      "goal_weight": 65,
+      "bmi": 24.913494809688583,
+      "risk_level": "1",
+      "risk_label": "Moderate",
+      "probabilities": [
+        0.1,
+        0.7,
+        0.2
+      ],
+      "protein_intake": 115.2,
+      "weight_loss_rate": 1.0,
+      "avg_calories": 400,
+      "avg_heart_rate": 130,
+      "avg_intensity": 5,
+      "exercise": "Mixed",
+      "weather": "Sunny",
+      "timestamp": "2026-05-15T10:23:33.203287",
+      "_id": "612b0299-3896-4c31-87b4-3563f0d62cb3"
+    },
+    {
+      "user_id": "1108",
+      "name": "Anes Mohamed D",
+      "age": 35,
+      "weight": 72,
+      "goal_weight": 65,
+      "bmi": 24.913494809688583,
+      "risk_level": "1",
+      "risk_label": "Moderate",
+      "probabilities": [
+        0.1,
+        0.7,
+        0.2
+      ],
+      "protein_intake": 115.2,
+      "weight_loss_rate": 1.0,
+      "avg_calories": 400,
+      "avg_heart_rate": 130,
+      "avg_intensity": 5,
+      "exercise": "Mixed",
+      "weather": "Sunny",
+      "timestamp": "2026-05-15T10:23:33.213519",
+      "_id": "dfe0edf3-5421-4db3-afa6-bebba5db9c3f"
+    },
+    {
+      "user_id": "1108",
+      "name": "Anes Mohamed D",
+      "age": 35,
+      "weight": 72,
+      "goal_weight": 65,
+      "bmi": 24.913494809688583,
+      "risk_level": "1",
+      "risk_label": "Moderate",
+      "probabilities": [
+        0.1,
+        0.7,
+        0.2
+      ],
+      "protein_intake": 115.2,
+      "weight_loss_rate": 1.0,
+      "avg_calories": 400,
+      "avg_heart_rate": 130,
+      "avg_intensity": 5,
+      "exercise": "Mixed",
+      "weather": "Sunny",
+      "timestamp": "2026-05-15T10:23:33.213519",
+      "_id": "fa5dec7a-bce7-4a36-a2b2-decdcad26bf7"
+    },
+    {
+      "user_id": "1108",
+      "name": "Anes Mohamed D",
+      "age": 35,
+      "weight": 72,
+      "goal_weight": 65,
+      "bmi": 24.913494809688583,
+      "risk_level": "1",
+      "risk_label": "Moderate",
+      "probabilities": [
+        0.1,
+        0.7,
+        0.2
+      ],
+      "protein_intake": 115.2,
+      "weight_loss_rate": 1.0,
+      "avg_calories": 0,
+      "avg_heart_rate": 70,
+      "avg_intensity": 1,
+      "exercise": "Mixed",
+      "weather": "Sunny",
+      "timestamp": "2026-05-15T10:23:33.213519",
+      "_id": "9a0e1ac9-a488-408f-904e-787efd415df2"
+    },
+    {
+      "user_id": "1108",
+      "name": "Anes Mohamed D",
+      "age": 35,
+      "weight": 72,
+      "goal_weight": 65,
+      "bmi": 24.913494809688583,
+      "risk_level": "1",
+      "risk_label": "Moderate",
+      "probabilities": [
+        0.1,
+        0.7,
+        0.2
+      ],
+      "protein_intake": 115.2,
+      "weight_loss_rate": 1.0,
+      "avg_calories": 0,
+      "avg_heart_rate": 70,
+      "avg_intensity": 1,
+      "exercise": "Mixed",
+      "weather": "Sunny",
+      "timestamp": "2026-05-15T10:23:33.213519",
+      "_id": "d2435593-982b-4680-ad60-61ddc133f4c8"
+    },
+    {
+      "user_id": "1108",
+      "name": "Anes Mohamed D",
+      "age": 35,
+      "weight": 72,
+      "goal_weight": 65,
+      "bmi": 24.913494809688583,
+      "risk_level": "1",
+      "risk_label": "Moderate",
+      "probabilities": [
+        0.1,
+        0.7,
+        0.2
+      ],
+      "protein_intake": 115.2,
+      "weight_loss_rate": 1.0,
+      "avg_calories": 0,
+      "avg_heart_rate": 70,
+      "avg_intensity": 1,
+      "exercise": "Mixed",
+      "weather": "Sunny",
+      "timestamp": "2026-05-15T10:23:33.213519",
+      "_id": "288b4215-bea6-4f66-8f63-8e905f0d2795"
+    },
+    {
+      "user_id": "1108",
+      "name": "Anes Mohamed D",
+      "age": 35,
+      "weight": 72,
+      "goal_weight": 65,
+      "bmi": 24.913494809688583,
+      "risk_level": "1",
+      "risk_label": "Moderate",
+      "probabilities": [
+        0.1,
+        0.7,
+        0.2
+      ],
+      "protein_intake": 115.2,
+      "weight_loss_rate": 1.0,
+      "avg_calories": 0,
+      "avg_heart_rate": 70,
+      "avg_intensity": 1,
+      "exercise": "Mixed",
+      "weather": "Sunny",
+      "timestamp": "2026-05-15T10:23:33.213519",
+      "_id": "e61e2b4e-10ce-4c09-9804-4269286ea736"
+    }
+  ],
+  "profiles": {
+    "1108": {
+      "user_id": "1108",
+      "name": "Anes Mohamed D",
+      "age": 35,
+      "height": 170,
+      "weight": 72,
+      "goal_weight": 65,
+      "gender": "Male"
+    },
+    "1": {
+      "user_id": "1",
+      "name": "Anes Mohamed D",
+      "age": 20,
+      "height": 170.0,
+      "weight": 75.0,
+      "goal_weight": 65.0,
+      "gender": "Male"
+    }
+  }
+}

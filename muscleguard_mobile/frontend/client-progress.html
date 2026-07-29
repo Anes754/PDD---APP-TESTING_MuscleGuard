@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuscleGuard AI — Client Progress</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+  :root {
+    --bg-main: #020617;
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+  }
+  body {
+    background: var(--bg-main);
+    color: #f8fafc;
+    margin: 0;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .progress-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  .progress-grid {
+    display: grid;
+    grid-template-columns: 450px 1fr;
+    gap: 1.5rem;
+  }
+  .panel {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+  .stat-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-value { font-size: 1.3rem; font-weight: 700; margin-top: 0.2rem; }
+  
+  .history-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .chat-box {
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    background: rgba(0,0,0,0.2);
+    padding: 1rem;
+    height: 250px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  #risk-gauge { height: 220px; margin-bottom: -0.5rem; }
+  
+  .btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #60a5fa;
+    text-decoration: none;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .day-tab {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    color: var(--muted);
+    padding: 0.35rem 0.6rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex: 1;
+    text-align: center;
+    outline: none;
+    font-family: var(--fb);
+  }
+  .day-tab.active {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+  }
+  .day-tab:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text);
+  }
+  .ex-mini-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+  .ex-mini-row:last-child { border-bottom: none; }
+  .prob-bar-seg { transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+</style>
+</head>
+<body>
+
+<div class="progress-container">
+  <button class="btn-back" onclick="navigateTo('coach-dashboard')">← Back to Dashboard</button>
+
+  <div class="progress-grid">
+    <!-- LEFT PANEL: PROFILE, RISK GAUGE, PROB BAR & WORKOUT PLAN -->
+    <div class="panel fade-in" style="display:flex; flex-direction:column; gap:0;">
+
+      <!-- Client Header -->
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem;">
+        <div style="width:48px;height:48px;border-radius:12px;background:#8b5cf6;display:flex;align-items:center;justify-content:center;font-weight:900;">CL</div>
+        <div>
+          <h2 id="c-name" style="margin:0;font-size:1.3rem;font-weight:700;">Client Progress</h2>
+          <div style="font-size:0.8rem;color:var(--muted);" id="c-gender-age">Gender • Age</div>
+        </div>
+      </div>
+
+      <!-- Weight / Goal / BMI -->
+      <div class="stat-card" style="margin-bottom: 1rem;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;text-align:center;">
+          <div>
+            <div class="stat-label">Weight</div>
+            <div style="font-weight:700;font-size:1.1rem;margin-top:0.2rem;"><span id="c-weight">—</span> kg</div>
+          </div>
+          <div>
+            <div class="stat-label">Goal</div>
+            <div style="font-weight:700;font-size:1.1rem;margin-top:0.2rem;"><span id="c-goal">—</span> kg</div>
+          </div>
+          <div>
+            <div class="stat-label">BMI</div>
+            <div style="font-weight:700;font-size:1.1rem;margin-top:0.2rem;" id="c-bmi">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RISK GAUGE -->
+      <div style="text-align:center;">
+        <div class="stat-label" style="margin-bottom:0.3rem;">Muscle Risk Status</div>
+        <div id="risk-gauge"></div>
+        <div id="risk-banner" style="padding:0.6rem 1rem;border-radius:12px;font-weight:800;letter-spacing:1px;font-size:0.95rem;margin-top:-0.8rem;">
+          ANALYZING RISK...
+        </div>
+      </div>
+
+      <!-- PROBABILITY BREAKDOWN BAR -->
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 0.9rem 1rem; border-radius: 14px; margin-top: 1rem; text-align: left;">
+        <div style="font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; font-weight: 600;">📊 Risk Probability Breakdown</div>
+        <div style="display:flex; height: 7px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.05); margin-bottom: 0.5rem;">
+          <div id="cp-prob-low-bar"  class="prob-bar-seg" style="background:var(--green); width:33%;"></div>
+          <div id="cp-prob-mod-bar"  class="prob-bar-seg" style="background:var(--yellow); width:33%;"></div>
+          <div id="cp-prob-high-bar" class="prob-bar-seg" style="background:var(--red); width:34%;"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--muted); font-family:var(--fm);">
+          <span>🟢 Low: <strong id="cp-prob-low-val" style="color:var(--text)">33%</strong></span>
+          <span>🟡 Mod: <strong id="cp-prob-mod-val" style="color:var(--text)">33%</strong></span>
+          <span>🔴 High: <strong id="cp-prob-high-val" style="color:var(--text)">34%</strong></span>
+        </div>
+      </div>
+
+      <!-- TODAY'S WORKOUT PLAN CARD -->
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 1rem; border-radius: 16px; margin-top: 1rem; text-align: left; flex: 1; display: flex; flex-direction: column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.7rem;">
+          <div style="font-size:0.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; font-weight:700;">🏋️ Today's Prescribed Workout</div>
+          <span id="cp-workout-focus-badge" class="risk-badge risk-low" style="font-size:0.6rem; padding:0.15rem 0.5rem; border-radius:6px; letter-spacing:0.5px;">
+            LOADING...
+          </span>
+        </div>
+
+        <!-- Exercise List -->
+        <div id="cp-workout-exercises-list" style="display:flex; flex-direction:column; gap:0.3rem; max-height:220px; overflow-y:auto; padding-right:0.2rem; flex: 1;">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: STATS & GRAPH & SUGGESTIONS -->
+    <div class="panel fade-in" style="animation-delay:0.1s">
+      <h3 style="margin:0 0 1rem 0;font-weight:600;">Average Workout Metrics (Last 7 Days)</h3>
+      <div class="history-metrics-grid">
+        <div class="stat-card">
+          <div class="stat-label">Calories Burned</div>
+          <div class="stat-value" id="s-cal">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Duration</div>
+          <div class="stat-value" id="s-dur">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Heart Rate</div>
+          <div class="stat-value" id="s-hr">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Intensity</div>
+          <div class="stat-value" id="s-int">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Protein Target</div>
+          <div class="stat-value" id="s-prot">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Weight Loss Rate</div>
+          <div class="stat-value" id="s-wlr">—</div>
+        </div>
+      </div>
+
+      <h3 style="margin:0 0 1rem 0;font-weight:600;">Risk Score Trend</h3>
+      <div id="history-chart" style="margin-bottom:2rem;"></div>
+
+      <h3 style="margin:0 0 1rem 0;font-weight:600;">Client Communication</h3>
+      
+      <!-- Messages History -->
+      <div class="chat-box" id="chat-messages">
+        <div style="color:var(--muted);text-align:center;padding:1rem;">Loading conversation...</div>
+      </div>
+
+      <!-- Send suggestion form -->
+      <div class="suggestion-box">
+        <textarea id="suggestion-text" placeholder="Type a coaching suggestion or exercise adjustment for your client..."></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:0.5rem;">
+          <button class="chat-send-btn" id="btn-send" onclick="sendSuggestion()">Send Suggestion</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  checkAuth();
+  const user = store.get("user");
+  
+  if (!user || user.role !== "coach") {
+    logout();
+  }
+
+  // Get client ID from query param
+  const urlParams = new URLSearchParams(window.location.search);
+  const clientId = urlParams.get("id");
+
+  if (!clientId) {
+    navigateTo("coach-dashboard");
+  }
+
+  let profile = {};
+  let history = [];
+
+  async function loadClientData() {
+    try {
+      const res = await apiGetClientProgress(clientId);
+      profile = res.profile || {};
+      history = res.history || [];
+      
+      renderProfile();
+      renderRiskGauge();
+      renderStats();
+      renderHistoryChart();
+      await loadMessages();
+    } catch (err) {
+      showToast("Error loading client details: " + err.message, "#ef4444");
+    }
+  }
+
+  function renderProfile() {
+    document.getElementById("c-name").textContent = profile.name || `Client (${clientId})`;
+    document.getElementById("c-gender-age").textContent = `${profile.gender || 'Unknown'} • ${profile.age || '—'} years old`;
+    document.getElementById("c-weight").textContent = profile.weight || '—';
+    document.getElementById("c-goal").textContent = profile.goal_weight || '—';
+    
+    if (profile.weight && profile.height) {
+      const bmiVal = calcBMI(profile.weight, profile.height);
+      const cat = bmiCategory(bmiVal);
+      document.getElementById("c-bmi").innerHTML = `${bmiVal.toFixed(1)} <small style="color:${cat.color};font-weight:700;">(${cat.label})</small>`;
+    } else {
+      document.getElementById("c-bmi").textContent = '—';
+    }
+  }
+
+  // ── PLANS DEFINITIONS (same as dashboard) ──
+  const CP_PLANS = {
+    "0-Cardio":[
+      {day:"Monday",    focus:"Cardio Endurance",  active:true,  ex:[["Treadmill Run","3×20 min"],["Jump Rope","3×5 min"],["High Knees","3×30 reps"]]},
+      {day:"Tuesday",   focus:"Active Recovery",   active:false, ex:[["Brisk Walk","1×30 min"],["Stretching","1×15 min"]]},
+      {day:"Wednesday", focus:"HIIT Cardio",       active:true,  ex:[["Burpees","4×15 reps"],["Mountain Climbers","4×20 reps"],["Box Jumps","3×12 reps"]]},
+      {day:"Thursday",  focus:"Rest Day",          active:false, ex:[["Light Yoga","1×20 min"]]},
+      {day:"Friday",    focus:"Cardio + Core",     active:true,  ex:[["Cycling","3×20 min"],["Plank","3×60 sec"],["Leg Raises","3×15 reps"]]},
+      {day:"Saturday",  focus:"Long Cardio",       active:true,  ex:[["Outdoor Run","1×45 min"],["Cool-down Walk","1×10 min"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+    "0-Strength":[
+      {day:"Monday",    focus:"Upper Body Push",   active:true,  ex:[["Push-ups","3×15 reps"],["Dumbbell Press","3×12 reps"],["Lateral Raises","3×12 reps"]]},
+      {day:"Tuesday",   focus:"Lower Body",        active:true,  ex:[["Bodyweight Squats","4×15 reps"],["Lunges","3×12 reps"],["Calf Raises","3×20 reps"]]},
+      {day:"Wednesday", focus:"Active Recovery",   active:false, ex:[["Stretching","1×20 min"],["Brisk Walk","1×20 min"]]},
+      {day:"Thursday",  focus:"Upper Body Pull",   active:true,  ex:[["Dumbbell Rows","3×12 reps"],["Bicep Curls","3×12 reps"],["Face Pulls","3×15 reps"]]},
+      {day:"Friday",    focus:"Full Body",         active:true,  ex:[["Deadlifts","4×10 reps"],["Goblet Squats","3×12 reps"],["Plank","3×45 sec"]]},
+      {day:"Saturday",  focus:"Core & Mobility",   active:true,  ex:[["Crunches","3×20 reps"],["Russian Twists","3×16 reps"],["Hip Flexor Stretch","2×30 sec"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Light Walk","1×20 min"]]},
+    ],
+    "0-Mixed":[
+      {day:"Monday",    focus:"Strength — Upper",  active:true,  ex:[["Push-ups","3×15 reps"],["Shoulder Press","3×12 reps"],["Tricep Dips","3×12 reps"]]},
+      {day:"Tuesday",   focus:"Cardio",            active:true,  ex:[["Treadmill Run","3×15 min"],["Jump Rope","3×3 min"]]},
+      {day:"Wednesday", focus:"Strength — Lower",  active:true,  ex:[["Squats","4×15 reps"],["Lunges","3×12 reps"],["Glute Bridges","3×15 reps"]]},
+      {day:"Thursday",  focus:"Rest Day",          active:false, ex:[["Yoga / Stretching","1×25 min"]]},
+      {day:"Friday",    focus:"HIIT",              active:true,  ex:[["Burpees","4×12 reps"],["Box Jumps","3×10 reps"],["Mountain Climbers","4×20 reps"]]},
+      {day:"Saturday",  focus:"Full Body Strength",active:true,  ex:[["Deadlifts","3×10 reps"],["Bent-over Rows","3×12 reps"],["Plank","3×60 sec"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+    "1-Cardio":[
+      {day:"Monday",    focus:"Moderate Cardio",   active:true,  ex:[["Treadmill Jog","3×15 min"],["Cycling","2×10 min"],["Step-ups","3×15 reps"]]},
+      {day:"Tuesday",   focus:"Strength Insert",   active:true,  ex:[["Bodyweight Squats","3×15 reps"],["Push-ups","3×12 reps"],["Plank","3×40 sec"]]},
+      {day:"Wednesday", focus:"Active Recovery",   active:false, ex:[["Walking","1×30 min"],["Stretching","1×15 min"]]},
+      {day:"Thursday",  focus:"Interval Cardio",   active:true,  ex:[["Sprint Intervals","6×1 min on/off"],["Jump Rope","3×3 min"]]},
+      {day:"Friday",    focus:"Strength + Cardio", active:true,  ex:[["Lunges","3×12 reps"],["Dumbbell Rows","3×12 reps"],["Rowing Machine","2×10 min"]]},
+      {day:"Saturday",  focus:"Light Cardio",      active:true,  ex:[["Brisk Walk","1×40 min"],["Core Stretches","1×10 min"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+    "1-Strength":[
+      {day:"Monday",    focus:"Push Day",          active:true,  ex:[["Bench Press","4×10 reps"],["Overhead Press","3×10 reps"],["Tricep Pushdowns","3×12 reps"]]},
+      {day:"Tuesday",   focus:"Pull Day",          active:true,  ex:[["Barbell Rows","4×10 reps"],["Lat Pulldowns","3×12 reps"],["Hammer Curls","3×12 reps"]]},
+      {day:"Wednesday", focus:"Active Recovery",   active:false, ex:[["Light Walk","1×20 min"],["Mobility Work","1×20 min"]]},
+      {day:"Thursday",  focus:"Leg Day",           active:true,  ex:[["Barbell Squats","4×10 reps"],["Romanian Deadlift","3×10 reps"],["Leg Press","3×12 reps"]]},
+      {day:"Friday",    focus:"Full Body",         active:true,  ex:[["Deadlifts","4×8 reps"],["Pull-ups","3×8 reps"],["Dumbbell Lunges","3×12 reps"]]},
+      {day:"Saturday",  focus:"Core & Arms",       active:true,  ex:[["Plank","4×60 sec"],["Bicep Curls","3×15 reps"],["Tricep Dips","3×15 reps"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Stretching","1×20 min"]]},
+    ],
+    "1-Mixed":[
+      {day:"Monday",    focus:"Upper Strength",    active:true,  ex:[["Bench Press","4×10 reps"],["Dumbbell Rows","3×12 reps"],["Lateral Raises","3×12 reps"]]},
+      {day:"Tuesday",   focus:"Cardio",            active:true,  ex:[["Cycling","3×15 min"],["Jump Rope","3×3 min"]]},
+      {day:"Wednesday", focus:"Leg Strength",      active:true,  ex:[["Barbell Squats","4×10 reps"],["Leg Curls","3×12 reps"],["Calf Raises","3×20 reps"]]},
+      {day:"Thursday",  focus:"Active Recovery",   active:false, ex:[["Yoga","1×30 min"]]},
+      {day:"Friday",    focus:"HIIT + Core",       active:true,  ex:[["Burpees","4×12 reps"],["Plank","3×60 sec"],["Leg Raises","3×15 reps"]]},
+      {day:"Saturday",  focus:"Full Body Strength",active:true,  ex:[["Deadlifts","4×8 reps"],["Overhead Press","3×10 reps"],["Pull-ups","3×8 reps"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+    "2-Cardio":[
+      {day:"Monday",    focus:"Low-Impact Cardio", active:true,  ex:[["Walking","2×20 min"],["Light Cycling","2×10 min"]]},
+      {day:"Tuesday",   focus:"Muscle Retention",  active:true,  ex:[["Bodyweight Squats","3×15 reps"],["Push-ups","3×10 reps"],["Plank","3×30 sec"]]},
+      {day:"Wednesday", focus:"Rest Day",          active:false, ex:[["Stretching","1×20 min"]]},
+      {day:"Thursday",  focus:"Gentle Cardio",     active:true,  ex:[["Elliptical","2×15 min"],["Step-ups","2×12 reps"]]},
+      {day:"Friday",    focus:"Strength Focus",    active:true,  ex:[["Dumbbell Squats","3×12 reps"],["Dumbbell Rows","3×10 reps"],["Glute Bridges","3×15 reps"]]},
+      {day:"Saturday",  focus:"Light Activity",    active:true,  ex:[["Brisk Walk","1×30 min"],["Foam Rolling","1×10 min"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Light Yoga","1×20 min"]]},
+    ],
+    "2-Strength":[
+      {day:"Monday",    focus:"Upper Body — Light",active:true,  ex:[["Push-ups","3×10 reps"],["Dumbbell Curls","3×10 reps"],["Overhead Press","3×8 reps"]]},
+      {day:"Tuesday",   focus:"Rest Day",          active:false, ex:[["Stretching","1×20 min"]]},
+      {day:"Wednesday", focus:"Lower Body — Light",active:true,  ex:[["Goblet Squats","3×10 reps"],["Glute Bridges","3×15 reps"],["Calf Raises","3×15 reps"]]},
+      {day:"Thursday",  focus:"Active Recovery",   active:false, ex:[["Walking","1×25 min"],["Mobility Work","1×15 min"]]},
+      {day:"Friday",    focus:"Full Body — Light", active:true,  ex:[["Deadlifts","3×8 reps"],["Dumbbell Rows","3×10 reps"],["Plank","3×40 sec"]]},
+      {day:"Saturday",  focus:"Core Stability",    active:true,  ex:[["Dead Bug","3×10 reps"],["Bird Dog","3×10 reps"],["Side Plank","3×30 sec each"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+    "2-Mixed":[
+      {day:"Monday",    focus:"Gentle Strength",   active:true,  ex:[["Push-ups","3×10 reps"],["Dumbbell Rows","3×10 reps"],["Plank","3×30 sec"]]},
+      {day:"Tuesday",   focus:"Low-Impact Cardio", active:true,  ex:[["Walking","1×30 min"],["Light Cycling","1×15 min"]]},
+      {day:"Wednesday", focus:"Rest Day",          active:false, ex:[["Stretching / Yoga","1×25 min"]]},
+      {day:"Thursday",  focus:"Lower Body — Light",active:true,  ex:[["Bodyweight Squats","3×12 reps"],["Glute Bridges","3×15 reps"],["Calf Raises","3×15 reps"]]},
+      {day:"Friday",    focus:"Cardio + Core",     active:true,  ex:[["Elliptical","2×15 min"],["Crunches","3×15 reps"],["Leg Raises","3×12 reps"]]},
+      {day:"Saturday",  focus:"Full Body — Light", active:true,  ex:[["Deadlifts","3×8 reps"],["Overhead Press","3×8 reps"],["Lat Pulldowns","3×10 reps"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+  };
+
+  let cpActivePlan = CP_PLANS["1-Mixed"];
+
+  function cpSelectDay(dayName) {
+    const workout = cpActivePlan.find(d => d.day === dayName) || cpActivePlan[0];
+
+    // Update focus badge
+    const badge = document.getElementById("cp-workout-focus-badge");
+    badge.textContent = workout.focus.toUpperCase();
+    badge.className = workout.active
+      ? "risk-badge risk-low"
+      : "risk-badge risk-mod";
+    badge.style.cssText = "font-size:0.6rem; padding:0.15rem 0.5rem; border-radius:6px; letter-spacing:0.5px;";
+
+    // Render exercise rows
+    const list = document.getElementById("cp-workout-exercises-list");
+    if (workout.ex && workout.ex.length > 0) {
+      list.innerHTML = workout.ex.map(([name, scheme]) => `
+        <div class="ex-mini-row">
+          <span style="font-size:0.82rem; color:#f8fafc; font-weight:500;">💪 ${name}</span>
+          <span style="font-size:0.78rem; font-family:var(--fm); color:#8b5cf6; font-weight:700;">${scheme}</span>
+        </div>
+      `).join("");
+    } else {
+      list.innerHTML = `<div style="font-size:0.8rem; color:var(--muted); text-align:center; padding:1rem;">🧘 Rest Day — Light recovery only</div>`;
+    }
+  }
+
+  function renderRiskGauge() {
+    const latest = history[0] || {};
+    const probs = latest.probabilities || [0.33, 0.33, 0.33];
+    const score = (probs[0] * 0 + probs[1] * 50 + probs[2] * 100);
+
+    Plotly.newPlot("risk-gauge", [{
+      type: "indicator", mode: "gauge+number",
+      value: score,
+      number: { suffix: "%", font: { color: "white", size: 26, family: "JetBrains Mono" } },
+      gauge: {
+        axis: { range: [0, 100], tickcolor: "#475569" },
+        bar: { color: "#8b5cf6" },
+        bgcolor: "rgba(0,0,0,0)",
+        borderwidth: 0,
+        steps: [
+          { range: [0, 30],  color: "rgba(34,  197, 94, 0.15)" },
+          { range: [30, 70], color: "rgba(234, 179,  8, 0.15)" },
+          { range: [70,100], color: "rgba(239,  68, 68, 0.15)" }
+        ],
+        threshold: { line: { color: "white", width: 4 }, thickness: 0.75, value: score }
+      }
+    }], {
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor:  "rgba(0,0,0,0)",
+      margin: { t: 10, b: 0, l: 25, r: 25 },
+      height: 220
+    }, { displayModeBar: false });
+
+    // Update risk banner
+    const banner = document.getElementById("risk-banner");
+    if (score < 30) {
+      banner.textContent = "SAFE ZONE";
+      banner.style.backgroundColor = "rgba(34,197,94,0.12)";
+      banner.style.color = "#22c55e";
+    } else if (score < 70) {
+      banner.textContent = "MODERATE CAUTION";
+      banner.style.backgroundColor = "rgba(234,179,8,0.12)";
+      banner.style.color = "#eab308";
+    } else {
+      banner.textContent = "CRITICAL RISK";
+      banner.style.backgroundColor = "rgba(239,68,68,0.12)";
+      banner.style.color = "#ef4444";
+    }
+
+    // Update probability breakdown bar
+    const pLow  = Math.round(probs[0] * 100);
+    const pMod  = Math.round(probs[1] * 100);
+    const pHigh = 100 - pLow - pMod;
+    document.getElementById("cp-prob-low-bar").style.width  = pLow  + "%";
+    document.getElementById("cp-prob-mod-bar").style.width  = pMod  + "%";
+    document.getElementById("cp-prob-high-bar").style.width = pHigh + "%";
+    document.getElementById("cp-prob-low-val").textContent  = pLow  + "%";
+    document.getElementById("cp-prob-mod-val").textContent  = pMod  + "%";
+    document.getElementById("cp-prob-high-val").textContent = pHigh + "%";
+
+    // Determine plan from client's latest record
+    const predLevel = latest.risk_level ?? 1;
+    const prefEx    = latest.exercise   || "Mixed";
+    const planKey   = `${predLevel}-${prefEx}`;
+    cpActivePlan    = CP_PLANS[planKey] || CP_PLANS["1-Mixed"];
+
+    // Auto-select today's day
+    const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const today = DAYS[new Date().getDay()];
+    cpSelectDay(today);
+  }
+
+  function renderStats() {
+    const latest = history[0] || {};
+    
+    document.getElementById("s-cal").textContent = latest.avg_calories ? `${latest.avg_calories.toFixed(0)} kcal` : '—';
+    document.getElementById("s-dur").textContent = latest.avg_duration ? `${latest.avg_duration.toFixed(0)} min` : '—';
+    document.getElementById("s-hr").textContent = latest.avg_heart_rate ? `${latest.avg_heart_rate.toFixed(0)} bpm` : '—';
+    document.getElementById("s-int").textContent = latest.avg_intensity ? `${latest.avg_intensity.toFixed(1)}/10` : '—';
+    document.getElementById("s-prot").textContent = latest.protein_intake ? `${latest.protein_intake.toFixed(0)} g` : '—';
+    document.getElementById("s-wlr").textContent = latest.weight_loss_rate ? `${latest.weight_loss_rate.toFixed(2)} kg/day` : '—';
+  }
+
+  function renderHistoryChart() {
+    if (history.length === 0) {
+      document.getElementById("history-chart").innerHTML = `<div style="color:var(--muted);text-align:center;padding:2rem;">No historical predictions logged yet.</div>`;
+      return;
+    }
+
+    const dates = history.map(h => new Date(h.timestamp).toLocaleDateString()).reverse();
+    const scores = history.map(h => {
+      const probs = h.probabilities || [0.33, 0.33, 0.33];
+      return (probs[0] * 0 + probs[1] * 50 + probs[2] * 100);
+    }).reverse();
+    
+    Plotly.newPlot("history-chart", [{
+      x: dates,
+      y: scores,
+      type: 'scatter',
+      mode: 'lines+markers',
+      line: { color: '#8b5cf6', width: 3 },
+      marker: { color: '#60a5fa', size: 8 },
+      name: 'Risk Level %'
+    }], {
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)",
+      xaxis: { gridcolor: "rgba(255,255,255,0.05)", color: "white" },
+      yaxis: { gridcolor: "rgba(255,255,255,0.05)", color: "white", range: [0, 100] },
+      margin: { t: 10, b: 30, l: 30, r: 10 },
+      height: 200
+    }, { displayModeBar: false });
+  }
+
+  async function loadMessages() {
+    try {
+      const res = await apiGetMessages(user.user_id, clientId);
+      const msgs = res.messages || [];
+      const chatContainer = document.getElementById("chat-messages");
+      
+      if (msgs.length === 0) {
+        chatContainer.innerHTML = `<div style="color:var(--muted);text-align:center;padding:1.5rem 0;">No suggestions or messages sent yet. Send advice below!</div>`;
+        return;
+      }
+      
+      chatContainer.innerHTML = msgs.map(m => {
+        const isSent = m.sender_id === user.user_id;
+        const bubbleClass = isSent ? "msg-sent" : "msg-received";
+        const time = new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const label = m.msg_type === "suggestion" ? `<div class="msg-label" style="color:#fb923c">Coach Suggestion</div>` : "";
+        
+        return `
+          <div class="msg-bubble ${bubbleClass}" style="margin-bottom:0.5rem;">
+            ${label}
+            <div>${m.content}</div>
+            <div class="msg-time" style="text-align:right;">${time}</div>
+          </div>
+        `;
+      }).join("");
+      
+      // Mark read
+      await apiMarkRead(user.user_id, clientId);
+      
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    } catch (err) {
+      console.error("Error loading chat messages: ", err);
+    }
+  }
+
+  async function sendSuggestion() {
+    const textEl = document.getElementById("suggestion-text");
+    const content = textEl.value.trim();
+    const btn = document.getElementById("btn-send");
+
+    if (!content) {
+      showToast("Please type something before sending", "#ef4444");
+      return;
+    }
+
+    btn.disabled = true;
+    
+    try {
+      const res = await apiSendMessage(user.user_id, clientId, content, "suggestion");
+      if (res.success) {
+        textEl.value = "";
+        showToast("Coaching suggestion sent successfully!");
+        await loadMessages();
+      } else {
+        throw new Error(res.message || "Failed to send");
+      }
+    } catch (err) {
+      showToast(err.message, "#ef4444");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // Load client data on startup
+  loadClientData();
+</script>
+</body>
+</html>

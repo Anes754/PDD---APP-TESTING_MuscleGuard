@@ -1,0 +1,19 @@
+{
+  "name": "MuscleGuard AI",
+  "short_name": "MuscleGuard",
+  "description": "AI-assisted muscle preservation tracking and coaching.",
+  "start_url": "/static/login.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f4f8",
+  "theme_color": "#007aff",
+  "icons": [
+    {
+      "src": "icons/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

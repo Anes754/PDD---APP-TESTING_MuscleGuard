@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuscleGuard AI — Workouts</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="container fade-in">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <a href="dashboard.html" class="logo">💪 MUSCLEGUARD AI</a>
+    <div class="stepper" id="onboarding-stepper" style="display:none;">
+      <div class="step step-done">✓ Profile</div>
+      <div class="step-line"></div>
+      <div class="step step-active">02 Workouts</div>
+      <div class="step-line"></div>
+      <div class="step step-inactive">03 Results</div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-title" id="main-hero-title">MY WORKOUT LOGGER</div>
+    <div class="hero-sub" id="user-info">Log your daily activity to analyze muscle risk</div>
+  </div>
+
+  <!-- ==================== ONBOARDING 7-DAY BASELINE VIEW ==================== -->
+  <div id="onboarding-view" style="display:none; flex-direction:column; gap:1.2rem;">
+    <!-- CONFIG -->
+    <div class="card">
+      <div class="card-title">7-DAY WORKOUT CONFIGURATION</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>🏃 Exercise Type</label>
+          <select id="exercise">
+            <option>Cardio</option><option>Strength</option><option>Mixed</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>☀️ Weather Condition</label>
+          <select id="weather">
+            <option>Sunny</option><option>Cloudy</option><option>Rainy</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>📅 Select Day to Log</label>
+          <select id="day-select" onchange="loadDay()">
+            <option value="0">Day 1 — Mon</option>
+            <option value="1">Day 2 — Tue</option>
+            <option value="2">Day 3 — Wed</option>
+            <option value="3">Day 4 — Thu</option>
+            <option value="5">Day 6 — Sat</option>
+            <option value="4">Day 5 — Fri</option>
+            <option value="6">Day 7 — Sun</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAY INPUT -->
+    <div class="card">
+      <div class="card-title" id="day-title">DAY 1 — MON</div>
+      <div class="form-grid-4">
+        <div class="field">
+          <label>🔥 Calories: <span id="cal-val" class="slider-val">0</span> kcal</label>
+          <input type="number" id="inp-cal" readonly style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); color:#a1a1aa; cursor:not-allowed;" value="0">
+        </div>
+        <div class="field">
+          <label>⏱️ Duration: <span id="dur-val" class="slider-val">0</span>m</label>
+          <input type="range" id="inp-dur" min="0" max="300" step="5" value="0" oninput="liveUpdate()">
+        </div>
+        <div class="field">
+          <label>❤️ Heart Rate: <span id="hr-val" class="slider-val">70</span></label>
+          <input type="range" id="inp-hr" min="40" max="220" step="1" value="70" oninput="liveUpdate()">
+        </div>
+        <div class="field">
+          <label>💪 Intensity: <span id="int-val" class="slider-val">5</span>/10</label>
+          <input type="range" id="inp-int" min="1" max="10" value="5" oninput="liveUpdate()">
+        </div>
+      </div>
+      <button class="btn" style="margin-top:0.5rem; font-size:0.9rem; padding:0.5rem 1.5rem;" onclick="saveDay()">
+        💾 SAVE DAY BASELINE
+      </button>
+      <span id="save-status" style="margin-left:1rem; font-size:0.82rem; color:var(--green);"></span>
+    </div>
+
+    <!-- WEEKLY CHARTS -->
+    <div class="card">
+      <div class="card-title">WEEKLY BASELINE OVERVIEW</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+        <div>
+          <div style="font-size:0.65rem; color:var(--muted); margin-bottom:0.3rem; text-transform:uppercase; letter-spacing:1px;">🔥 Calories Burned</div>
+          <div class="bar-chart" id="chart-cal"></div>
+        </div>
+        <div>
+          <div style="font-size:0.65rem; color:var(--muted); margin-bottom:0.3rem; text-transform:uppercase; letter-spacing:1px;">❤️ Heart Rate</div>
+          <div class="bar-chart" id="chart-hr"></div>
+        </div>
+        <div>
+          <div style="font-size:0.65rem; color:var(--muted); margin-bottom:0.3rem; text-transform:uppercase; letter-spacing:1px;">⏱️ Duration</div>
+          <div class="bar-chart" id="chart-dur"></div>
+        </div>
+        <div>
+          <div style="font-size:0.65rem; color:var(--muted); margin-bottom:0.3rem; text-transform:uppercase; letter-spacing:1px;">💪 Intensity</div>
+          <div class="bar-chart" id="chart-int"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <a href="index.html" class="btn btn-ghost">⬅ Back</a>
+      <button class="btn" id="onboard-finish-btn" onclick="handleFinishSetup()">🚀 FINISH SETUP</button>
+    </div>
+  </div>
+
+
+  <!-- ==================== EXISTING USER DAILY LOGGER VIEW ==================== -->
+  <div id="existing-user-view" style="display:none; flex-direction:column; gap:1.2rem;">
+    <!-- WEEKLY TRAINING SCHEDULE -->
+    <div class="card">
+      <div class="card-title">📅 Weekly Training Schedule</div>
+      <div id="ex-weekly-calendar" style="display: flex; flex-direction: column; gap: 0.9rem; max-height: 380px; overflow-y: auto; padding-right: 0.2rem; margin-bottom: 0.5rem;">
+        <!-- Populated dynamically with all 7 days -->
+      </div>
+    </div>
+
+    <!-- DAILY PERFORMANCE LOG -->
+    <div class="card">
+      <div class="card-title">📝 Log Today's Performance</div>
+      
+      <div class="form-grid-2" style="margin-bottom: 1rem;">
+        <div class="field">
+          <label>🏃 Exercise Type Done</label>
+          <select id="ex-log-exercise" onchange="updateExistingUserCalories()">
+            <option>Cardio</option><option>Strength</option><option>Mixed</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>☀️ Today's Weather</label>
+          <select id="ex-log-weather">
+            <option>Sunny</option><option>Cloudy</option><option>Rainy</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-grid-4">
+        <div class="field">
+          <label>🔥 Calories Burned: <span id="ex-cal-val" class="slider-val">400</span> kcal</label>
+          <input type="number" id="ex-inp-cal" readonly style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); color:#a1a1aa; cursor:not-allowed;" value="400">
+        </div>
+        <div class="field">
+          <label>⏱️ Duration: <span id="ex-dur-val" class="slider-val">30</span>m</label>
+          <input type="range" id="ex-inp-dur" min="0" max="180" step="5" value="30" oninput="updateExistingUserCalories()">
+        </div>
+        <div class="field">
+          <label>❤️ Avg Heart Rate: <span id="ex-hr-val" class="slider-val">120</span></label>
+          <input type="range" id="ex-inp-hr" min="40" max="220" step="1" value="120" oninput="updateExistingUserCalories()">
+        </div>
+        <div class="field">
+          <label>💪 Gym Intensity: <span id="ex-int-val" class="slider-val">5</span>/10</label>
+          <input type="range" id="ex-inp-int" min="1" max="10" value="5" oninput="updateExistingUserCalories()">
+        </div>
+      </div>
+
+      <button class="btn" style="margin-top:1.5rem; width:100%; padding:1rem; border-radius:14px; font-size:1rem;" onclick="logTodayPerformance()">
+        💾 SAVE TODAY'S PERFORMANCE LOG
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  checkAuth();
+
+  const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const DAY_NAMES = ["DAY 1 — MON","DAY 2 — TUE","DAY 3 — WED","DAY 4 — THU","DAY 5 — FRI","DAY 6 — SAT","DAY 7 — SUN"];
+
+  // PLANS Definitions for Workout Rendering
+  const PLANS = {
+    "0-Cardio":[
+      {day:"Monday",    focus:"Cardio Endurance",  active:true,  ex:[["Treadmill Run","3×20 min"],["Jump Rope","3×5 min"],["High Knees","3×30 reps"]]},
+      {day:"Tuesday",   focus:"Active Recovery",   active:false, ex:[["Brisk Walk","1×30 min"],["Stretching","1×15 min"]]},
+      {day:"Wednesday", focus:"HIIT Cardio",       active:true,  ex:[["Burpees","4×15 reps"],["Mountain Climbers","4×20 reps"],["Box Jumps","3×12 reps"]]},
+      {day:"Thursday",  focus:"Rest Day",          active:false, ex:[["Light Yoga","1×20 min"]]},
+      {day:"Friday",    focus:"Cardio + Core",     active:true,  ex:[["Cycling","3×20 min"],["Plank","3×60 sec"],["Leg Raises","3×15 reps"]]},
+      {day:"Saturday",  focus:"Long Cardio",       active:true,  ex:[["Outdoor Run","1×45 min"],["Cool-down Walk","1×10 min"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+    "0-Strength":[
+      {day:"Monday",    focus:"Upper Body Push",   active:true,  ex:[["Push-ups","3×15 reps"],["Dumbbell Press","3×12 reps"],["Lateral Raises","3×12 reps"]]},
+      {day:"Tuesday",   focus:"Lower Body",        active:true,  ex:[["Bodyweight Squats","4×15 reps"],["Lunges","3×12 reps"],["Calf Raises","3×20 reps"]]},
+      {day:"Wednesday", focus:"Active Recovery",   active:false, ex:[["Stretching","1×20 min"],["Brisk Walk","1×20 min"]]},
+      {day:"Thursday",  focus:"Upper Body Pull",   active:true,  ex:[["Dumbbell Rows","3×12 reps"],["Bicep Curls","3×12 reps"],["Face Pulls","3×15 reps"]]},
+      {day:"Friday",    focus:"Full Body",         active:true,  ex:[["Deadlifts","4×10 reps"],["Goblet Squats","3×12 reps"],["Plank","3×45 sec"]]},
+      {day:"Saturday",  focus:"Core & Mobility",   active:true,  ex:[["Crunches","3×20 reps"],["Russian Twists","3×16 reps"],["Hip Flexor Stretch","2×30 sec"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Light Walk","1×20 min"]]},
+    ],
+    "0-Mixed":[
+      {day:"Monday",    focus:"Strength — Upper",  active:true,  ex:[["Push-ups","3×15 reps"],["Shoulder Press","3×12 reps"],["Tricep Dips","3×12 reps"]]},
+      {day:"Tuesday",   focus:"Cardio",            active:true,  ex:[["Treadmill Run","3×15 min"],["Jump Rope","3×3 min"]]},
+      {day:"Wednesday", focus:"Strength — Lower",  active:true,  ex:[["Squats","4×15 reps"],["Lunges","3×12 reps"],["Glute Bridges","3×15 reps"]]},
+      {day:"Thursday",  focus:"Rest Day",          active:false, ex:[["Yoga / Stretching","1×25 min"]]},
+      {day:"Friday",    focus:"HIIT",              active:true,  ex:[["Burpees","4×12 reps"],["Box Jumps","3×10 reps"],["Mountain Climbers","4×20 reps"]]},
+      {day:"Saturday",  focus:"Full Body Strength",active:true,  ex:[["Deadlifts","3×10 reps"],["Bent-over Rows","3×12 reps"],["Plank","3×60 sec"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+    "1-Cardio":[
+      {day:"Monday",    focus:"Moderate Cardio",   active:true,  ex:[["Treadmill Jog","3×15 min"],["Cycling","2×10 min"],["Step-ups","3×15 reps"]]},
+      {day:"Tuesday",   focus:"Strength Insert",   active:true,  ex:[["Bodyweight Squats","3×15 reps"],["Push-ups","3×12 reps"],["Plank","3×40 sec"]]},
+      {day:"Wednesday", focus:"Active Recovery",   active:false, ex:[["Walking","1×30 min"],["Stretching","1×15 min"]]},
+      {day:"Thursday",  focus:"Interval Cardio",   active:true,  ex:[["Sprint Intervals","6×1 min on/off"],["Jump Rope","3×3 min"]]},
+      {day:"Friday",    focus:"Strength + Cardio", active:true,  ex:[["Lunges","3×12 reps"],["Dumbbell Rows","3×12 reps"],["Rowing Machine","2×10 min"]]},
+      {day:"Saturday",  focus:"Light Cardio",      active:true,  ex:[["Brisk Walk","1×40 min"],["Core Stretches","1×10 min"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+    "1-Strength":[
+      {day:"Monday",    focus:"Push Day",          active:true,  ex:[["Bench Press","4×10 reps"],["Overhead Press","3×10 reps"],["Tricep Pushdowns","3×12 reps"]]},
+      {day:"Tuesday",   focus:"Pull Day",          active:true,  ex:[["Barbell Rows","4×10 reps"],["Lat Pulldowns","3×12 reps"],["Hammer Curls","3×12 reps"]]},
+      {day:"Wednesday", focus:"Active Recovery",   active:false, ex:[["Light Walk","1×20 min"],["Mobility Work","1×20 min"]]},
+      {day:"Thursday",  focus:"Leg Day",           active:true,  ex:[["Barbell Squats","4×10 reps"],["Romanian Deadlift","3×10 reps"],["Leg Press","3×12 reps"]]},
+      {day:"Friday",    focus:"Full Body",         active:true,  ex:[["Deadlifts","4×8 reps"],["Pull-ups","3×8 reps"],["Dumbbell Lunges","3×12 reps"]]},
+      {day:"Saturday",  focus:"Core & Arms",       active:true,  ex:[["Plank","4×60 sec"],["Bicep Curls","3×15 reps"],["Tricep Dips","3×15 reps"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Stretching","1×20 min"]]},
+    ],
+    "1-Mixed":[
+      {day:"Monday",    focus:"Upper Strength",    active:true,  ex:[["Bench Press","4×10 reps"],["Dumbbell Rows","3×12 reps"],["Lateral Raises","3×12 reps"]]},
+      {day:"Tuesday",   focus:"Cardio",            active:true,  ex:[["Cycling","3×15 min"],["Jump Rope","3×3 min"]]},
+      {day:"Wednesday", focus:"Leg Strength",      active:true,  ex:[["Barbell Squats","4×10 reps"],["Leg Curls","3×12 reps"],["Calf Raises","3×20 reps"]]},
+      {day:"Thursday",  focus:"Active Recovery",   active:false, ex:[["Yoga","1×30 min"]]},
+      {day:"Friday",    focus:"HIIT + Core",       active:true,  ex:[["Burpees","4×12 reps"],["Plank","3×60 sec"],["Leg Raises","3×15 reps"]]},
+      {day:"Saturday",  focus:"Full Body Strength",active:true,  ex:[["Deadlifts","4×8 reps"],["Overhead Press","3×10 reps"],["Pull-ups","3×8 reps"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+    "2-Cardio":[
+      {day:"Monday",    focus:"Low-Impact Cardio", active:true,  ex:[["Walking","2×20 min"],["Light Cycling","2×10 min"]]},
+      {day:"Tuesday",   focus:"Muscle Retention",  active:true,  ex:[["Bodyweight Squats","3×15 reps"],["Push-ups","3×10 reps"],["Plank","3×30 sec"]]},
+      {day:"Wednesday", focus:"Rest Day",          active:false, ex:[["Stretching","1×20 min"]]},
+      {day:"Thursday",  focus:"Gentle Cardio",     active:true,  ex:[["Elliptical","2×15 min"],["Step-ups","2×12 reps"]]},
+      {day:"Friday",    focus:"Strength Focus",    active:true,  ex:[["Dumbbell Squats","3×12 reps"],["Dumbbell Rows","3×10 reps"],["Glute Bridges","3×15 reps"]]},
+      {day:"Saturday",  focus:"Light Activity",    active:true,  ex:[["Brisk Walk","1×30 min"],["Foam Rolling","1×10 min"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Light Yoga","1×20 min"]]},
+    ],
+    "2-Strength":[
+      {day:"Monday",    focus:"Upper Body — Light",active:true,  ex:[["Push-ups","3×10 reps"],["Dumbbell Curls","3×10 reps"],["Overhead Press","3×8 reps"]]},
+      {day:"Tuesday",   focus:"Rest Day",          active:false, ex:[["Stretching","1×20 min"]]},
+      {day:"Wednesday", focus:"Lower Body — Light",active:true,  ex:[["Goblet Squats","3×10 reps"],["Glute Bridges","3×15 reps"],["Calf Raises","3×15 reps"]]},
+      {day:"Thursday",  focus:"Active Recovery",   active:false, ex:[["Walking","1×25 min"],["Mobility Work","1×15 min"]]},
+      {day:"Friday",    focus:"Full Body — Light", active:true,  ex:[["Deadlifts","3×8 reps"],["Dumbbell Rows","3×10 reps"],["Plank","3×40 sec"]]},
+      {day:"Saturday",  focus:"Core Stability",    active:true,  ex:[["Dead Bug","3×10 reps"],["Bird Dog","3×10 reps"],["Side Plank","3×30 sec each"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+    "2-Mixed":[
+      {day:"Monday",    focus:"Gentle Strength",   active:true,  ex:[["Push-ups","3×10 reps"],["Dumbbell Rows","3×10 reps"],["Plank","3×30 sec"]]},
+      {day:"Tuesday",   focus:"Low-Impact Cardio", active:true,  ex:[["Walking","1×30 min"],["Light Cycling","1×15 min"]]},
+      {day:"Wednesday", focus:"Rest Day",          active:false, ex:[["Stretching / Yoga","1×25 min"]]},
+      {day:"Thursday",  focus:"Lower Body — Light",active:true,  ex:[["Bodyweight Squats","3×12 reps"],["Glute Bridges","3×15 reps"],["Calf Raises","3×15 reps"]]},
+      {day:"Friday",    focus:"Cardio + Core",     active:true,  ex:[["Elliptical","2×15 min"],["Crunches","3×15 reps"],["Leg Raises","3×12 reps"]]},
+      {day:"Saturday",  focus:"Full Body — Light", active:true,  ex:[["Deadlifts","3×8 reps"],["Overhead Press","3×8 reps"],["Lat Pulldowns","3×10 reps"]]},
+      {day:"Sunday",    focus:"Rest Day",          active:false, ex:[["Foam Rolling","1×15 min"]]},
+    ],
+  };
+
+  const user = store.get("user");
+  const profile = store.get("profile") || {};
+  let weeklyData = store.get("weekly") || emptyWeek();
+  
+  // Set profile text in hero
+  document.getElementById("user-info").textContent =
+    `${profile.name || "User"} · Age ${profile.age || "—"} · ${profile.gender || "—"} · ${profile.weight || "—"}kg → ${profile.goal_weight || "—"}kg`;
+
+  // MET values based on Exercise Type and Gym Intensity
+  function getMET(exercise, intensity) {
+    const type = String(exercise).toLowerCase();
+    const intVal = parseFloat(intensity) || 5;
+    if (type.includes("cardio")) {
+      return 3.0 + (intVal - 1) * 1.0;
+    } else if (type.includes("strength")) {
+      return 3.0 + (intVal - 1) * 0.33;
+    } else {
+      return 3.0 + (intVal - 1) * 0.67;
+    }
+  }
+
+  function updateExistingUserCalories() {
+    const exType = document.getElementById("ex-log-exercise").value;
+    const dur = parseFloat(document.getElementById("ex-inp-dur").value) || 0;
+    const hr = parseFloat(document.getElementById("ex-inp-hr").value) || 120;
+    const int = parseInt(document.getElementById("ex-inp-int").value) || 5;
+    
+    const weight = parseFloat(profile.weight) || 75;
+    const met = getMET(exType, int);
+    const cal = Math.round(met * weight * (dur / 60));
+
+    document.getElementById("ex-cal-val").textContent = cal;
+    const calInput = document.getElementById("ex-inp-cal");
+    if (calInput) calInput.value = cal;
+    
+    document.getElementById("ex-dur-val").textContent = dur + "m";
+    document.getElementById("ex-hr-val").textContent = hr;
+    document.getElementById("ex-int-val").textContent = int;
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const isNewUser = urlParams.get("new_user") === "true";
+
+  async function initWorkoutPage() {
+    try {
+      if (!profile.weight) {
+        const prof = await apiGetProfile(user.user_id);
+        if (prof) {
+          Object.assign(profile, prof);
+          store.set("profile", profile);
+          document.getElementById("user-info").textContent =
+            `${profile.name || "User"} · Age ${profile.age || "—"} · ${profile.gender || "—"} · ${profile.weight || "—"}kg → ${profile.goal_weight || "—"}kg`;
+        }
+      }
+      const res = await apiHistory(user.user_id);
+      const history = res.data || [];
+      const userHasHistory = history.length > 0;
+
+      if (isNewUser && !userHasHistory) {
+        // ── Show Onboarding View ──
+        document.getElementById("onboarding-view").style.display = "flex";
+        document.getElementById("onboarding-stepper").style.display = "flex";
+        document.getElementById("main-hero-title").textContent = "STEP 2: BASELINE DATA";
+        document.getElementById("user-info").textContent = "Please enter your workout data for the last 7 days to initialize your profile.";
+
+        let exercise = store.get("exercise") || "Cardio";
+        let weather  = store.get("weather")  || "Sunny";
+        document.getElementById("exercise").value = exercise;
+        document.getElementById("weather").value  = weather;
+
+        document.getElementById("exercise").onchange = () => {
+          store.set("exercise", document.getElementById("exercise").value);
+          liveUpdate();
+        };
+        document.getElementById("weather").onchange  = () => store.set("weather",  document.getElementById("weather").value);
+
+        renderCharts();
+        loadDay();
+      } else {
+        // ── Show Existing Daily Logging View ──
+        document.getElementById("existing-user-view").style.display = "flex";
+        document.getElementById("main-hero-title").textContent = "WEEKLY TRAINING PLAN";
+        
+        await loadExistingUserWorkout(history);
+      }
+    } catch (err) {
+      console.error(err);
+      // Fallback
+      document.getElementById("onboarding-view").style.display = "flex";
+      loadDay();
+    }
+  }
+
+  // Load today's workout plan and render 7-day calendar for existing user
+  async function loadExistingUserWorkout(history) {
+    try {
+      const latest = history[0] || {};
+      const predLevel = latest.risk_level ?? 1;
+      const prefEx    = latest.exercise || "Mixed";
+      const planKey   = `${predLevel}-${prefEx}`;
+      const activePlan = PLANS[planKey] || PLANS["1-Mixed"];
+      
+      // Determine today's name
+      const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const todayName  = daysOfWeek[new Date().getDay()]; // e.g. "Wednesday"
+      
+      // Render 7-day calendar
+      const calendarContainer = document.getElementById("ex-weekly-calendar");
+      if (calendarContainer) {
+        calendarContainer.innerHTML = activePlan.map(dayPlan => {
+          const isToday = dayPlan.day === todayName;
+          const isRest = !dayPlan.active;
+          
+          let dayClass = "day-card";
+          if (isToday) dayClass += " active";
+          else if (isRest) dayClass += " rest";
+          
+          const focusClass = isRest ? "focus-tag rest-tag" : "focus-tag";
+          
+          const exList = dayPlan.ex.map(([name, scheme]) => `
+            <div class="ex-row" style="padding: 0.25rem 0;">
+              <span class="ex-name">💪 ${name}</span>
+              <span class="ex-scheme">${scheme}</span>
+            </div>
+          `).join("");
+          
+          return `
+            <div class="${dayClass}" style="${isToday ? 'border-color:var(--accent) !important; background:rgba(10,132,255,0.05) !important;' : ''}">
+              <div class="day-header">
+                <span class="day-name" style="${isToday ? 'color:var(--accent); font-weight:800;' : ''}">${dayPlan.day} ${isToday ? '• Today' : ''}</span>
+                <span class="${focusClass}" style="${isRest ? 'background:rgba(255,255,255,0.05); color:var(--muted); border:1px solid rgba(255,255,255,0.1);' : ''}">${dayPlan.focus}</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:0.25rem;">
+                ${exList}
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Populate selects with latest
+      document.getElementById("ex-log-exercise").value = prefEx;
+      document.getElementById("ex-log-weather").value  = latest.weather || "Sunny";
+      
+      updateExistingUserCalories();
+    } catch(err) {
+      console.error(err);
+      showToast("Error loading daily plan", "#ef4444");
+    }
+  }
+
+  // ── Existing user log daily performance ──
+  async function logTodayPerformance() {
+    const cal = parseFloat(document.getElementById("ex-inp-cal").value) || 400;
+    const dur = parseFloat(document.getElementById("ex-inp-dur").value) || 30;
+    const hr  = parseFloat(document.getElementById("ex-inp-hr").value) || 120;
+    const int = parseInt(document.getElementById("ex-inp-int").value) || 5;
+    const ex  = document.getElementById("ex-log-exercise").value;
+    const we  = document.getElementById("ex-log-weather").value;
+    
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> SAVING LOG...';
+    
+    try {
+      const resHistory = await apiHistory(user.user_id);
+      const hist = resHistory.data || [];
+      
+      const payload = {
+        ...profile,
+        exercise: ex,
+        weather: we,
+        weekly_data: hist.slice(0, 6).map(h => ({
+          calories:   h.avg_calories  || 0,
+          duration:   h.avg_duration  || 0,
+          heart_rate: h.avg_heart_rate || 70,
+          intensity:  h.avg_intensity || 1
+        }))
+      };
+      
+      // Push today's entry first
+      payload.weekly_data.unshift({
+        calories: cal,
+        duration: dur,
+        heart_rate: hr,
+        intensity: int
+      });
+      
+      // Ensure full week baseline length
+      while (payload.weekly_data.length < 7) {
+        payload.weekly_data.push({ calories: 0, duration: 0, heart_rate: 70, intensity: 1 });
+      }
+      
+      const resPredict = await apiPredict(payload);
+      const result = resPredict.data;
+      
+      await apiSave({
+        ...profile,
+        ...result,
+        exercise: ex,
+        weather: we
+      });
+      
+      showToast("Log saved! Risk profile updated successfully.");
+      triggerDynamicIsland("Workout Saved", "Muscle guard risk updated!", "💪");
+      setTimeout(() => navigateTo("dashboard"), 1200);
+    } catch(e) {
+      showToast("Log failed: " + e.message, "#ef4444");
+      btn.disabled = false;
+      btn.innerHTML = "💾 SAVE TODAY'S PERFORMANCE LOG";
+    }
+  }
+
+  // ── Onboarding 7-day configuration logic ──
+  function loadDay() {
+    const idx = parseInt(document.getElementById("day-select").value);
+    const d = weeklyData[idx];
+    document.getElementById("inp-cal").value = d.calories;
+    document.getElementById("cal-val").textContent = d.calories;
+    document.getElementById("inp-dur").value = d.duration;
+    document.getElementById("dur-val").textContent = d.duration;
+    document.getElementById("inp-hr").value  = d.heart_rate;
+    document.getElementById("hr-val").textContent  = d.heart_rate;
+    document.getElementById("inp-int").value = d.intensity;
+    document.getElementById("int-val").textContent = d.intensity;
+    document.getElementById("day-title").textContent = DAY_NAMES[idx];
+    document.getElementById("save-status").textContent = "";
+  }
+
+  function liveUpdate() {
+    const idx = parseInt(document.getElementById("day-select").value);
+    const dur = parseFloat(document.getElementById("inp-dur").value) || 0;
+    const hr  = parseFloat(document.getElementById("inp-hr").value) || 70;
+    const int = parseInt(document.getElementById("inp-int").value) || 5;
+    const exType = document.getElementById("exercise").value;
+
+    const weight = parseFloat(profile.weight) || 75;
+    const met = getMET(exType, int);
+    const cal = Math.round(met * weight * (dur / 60));
+
+    document.getElementById("cal-val").textContent = cal;
+    const calInput = document.getElementById("inp-cal");
+    if (calInput) calInput.value = cal;
+
+    document.getElementById("dur-val").textContent = dur;
+    document.getElementById("hr-val").textContent  = hr;
+    document.getElementById("int-val").textContent = int;
+
+    weeklyData[idx] = {
+      calories:   cal,
+      duration:   dur,
+      heart_rate: hr,
+      intensity:  int,
+    };
+    renderCharts();
+  }
+
+  function saveDay() {
+    const idx = parseInt(document.getElementById("day-select").value);
+    weeklyData[idx] = {
+      calories:   parseFloat(document.getElementById("inp-cal").value) || 0,
+      duration:   parseFloat(document.getElementById("inp-dur").value) || 0,
+      heart_rate: parseFloat(document.getElementById("inp-hr").value)  || 0,
+      intensity:  parseInt(document.getElementById("inp-int").value)   || 1,
+    };
+    store.set("weekly", weeklyData);
+    document.getElementById("save-status").textContent = `✅ ${DAYS[idx]} saved!`;
+    renderCharts();
+  }
+
+  function renderCharts() {
+    const cal  = weeklyData.map(d => d.calories);
+    const hr   = weeklyData.map(d => d.heart_rate);
+    const dur  = weeklyData.map(d => d.duration);
+    const intn = weeklyData.map(d => d.intensity);
+    const maxCal  = Math.max(...cal,  1);
+    const maxHr   = Math.max(...hr,   1);
+    const maxDur  = Math.max(...dur,  1);
+    const maxInt  = Math.max(...intn, 1);
+    renderBar("chart-cal", cal,  maxCal,  "#f97316");
+    renderBar("chart-hr",  hr,   maxHr,   "#ef4444");
+    renderBar("chart-dur", dur,  maxDur,  "#3b82f6");
+    renderBar("chart-int", intn, maxInt,  "#a855f7");
+  }
+
+  function renderBar(id, values, maxVal, color) {
+    const el = document.getElementById(id);
+    el.innerHTML = values.map((v, i) => `
+      <div class="bar-col">
+        <div class="bar" style="height:${Math.max((v/maxVal)*90,2)}%;background:${color};opacity:${v>0?0.9:0.2}"></div>
+        <div class="bar-label">${DAYS[i]}</div>
+      </div>
+    `).join("");
+  }
+
+  async function handleFinishSetup() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> FINALIZING...';
+
+    try {
+      const payload = {
+        user_id: user.user_id,
+        profile: profile,
+        exercise: document.getElementById("exercise").value,
+        weather:  document.getElementById("weather").value,
+        weekly_data: weeklyData,
+      };
+      
+      await apiOnboard(payload);
+      showToast("Baseline calibration complete! Welcome to Nexus.");
+      triggerDynamicIsland("Setup Finished", "Calibration complete!", "🚀");
+      setTimeout(() => navigateTo("dashboard"), 1200);
+    } catch(e) {
+      showToast("Setup failed: " + e.message, "#ef4444");
+      btn.disabled = false;
+      btn.innerHTML = "🚀 FINISH SETUP";
+    }
+  }
+
+  // Run on start
+  initWorkoutPage();
+</script>
+</body>
+</html>

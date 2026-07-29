@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuscleGuard AI — Coach Portal</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  :root {
+    --bg-main: #020617;
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+  }
+  body {
+    background: var(--bg-main);
+    color: #f8fafc;
+    margin: 0;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .coach-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  .panel {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    padding: 2rem;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-value { font-size: 2rem; font-weight: 700; margin-top: 0.5rem; }
+  
+  .copy-success {
+    font-size: 0.75rem;
+    color: #22c55e;
+    margin-left: 0.5rem;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="coach-container">
+  <div class="panel fade-in">
+    <div class="coach-header" style="display:flex; flex-direction:column; align-items:flex-start; gap:0.6rem; width:100%; margin-bottom:1.5rem;">
+      <div>
+        <h1 style="margin:0;font-family:'Bebas Neue', sans-serif;font-size:2.2rem;letter-spacing:1px;background: linear-gradient(to right, #60a5fa, #a855f7);-webkit-background-clip: text;-webkit-text-fill-color: transparent;">Coach Dashboard</h1>
+        <div style="color:var(--muted);margin-top:0.3rem;">Welcome back, <span id="coach-name" style="color:white;font-weight:700;">Coach</span></div>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:0.8rem; margin-top:0.4rem;">
+        <div class="coach-code-badge" onclick="copyCoachCode()" style="margin:0; flex:1; text-align:center; padding: 0.5rem;">
+          Code: <span id="coach-code" style="font-weight:700;">------</span>
+          <span class="copy-success" id="copy-text">Copied!</span>
+        </div>
+        <button class="btn btn-ghost" onclick="logout()" style="border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem 1.2rem; border-radius: 8px; font-weight:700; height:38px; min-height:38px; display:inline-flex; align-items:center; justify-content:center; box-shadow:none !important; margin: 0;">Logout</button>
+      </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Clients</div>
+        <div class="stat-value" id="stat-total">0</div>
+      </div>
+      <div class="stat-card" style="border-top: 3px solid var(--red);">
+        <div class="stat-label">High Risk</div>
+        <div class="stat-value" id="stat-high" style="color:var(--red);">0</div>
+      </div>
+      <div class="stat-card" style="border-top: 3px solid var(--yellow);">
+        <div class="stat-label">Moderate Risk</div>
+        <div class="stat-value" id="stat-mod" style="color:var(--yellow);">0</div>
+      </div>
+      <div class="stat-card" style="border-top: 3px solid var(--green);">
+        <div class="stat-label">Low Risk</div>
+        <div class="stat-value" id="stat-low" style="color:var(--green);">0</div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:2rem;margin-bottom:1rem;font-weight:600;">Active Clients</h2>
+    
+    <!-- Clients Grid -->
+    <div class="clients-grid" id="clients-grid">
+      <!-- Loading State -->
+      <div class="empty-state" style="grid-column: 1/-1;">
+        <div class="empty-state-icon">⏳</div>
+        <div class="empty-state-title">Loading Clients...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  checkAuth();
+  const user = store.get("user");
+  
+  if (!user || user.role !== "coach") {
+    logout();
+  }
+
+  document.getElementById("coach-name").textContent = user.name;
+  document.getElementById("coach-code").textContent = user.coach_code || "N/A";
+
+  async function copyCoachCode() {
+    try {
+      await navigator.clipboard.writeText(user.coach_code);
+      const ct = document.getElementById("copy-text");
+      ct.style.display = "inline";
+      setTimeout(() => ct.style.display = "none", 1500);
+      showToast("Coach Code copied to clipboard!");
+    } catch (err) {
+      showToast("Failed to copy code", "#ef4444");
+    }
+  }
+
+  async function loadClients() {
+    try {
+      const res = await apiGetCoachClients(user.user_id);
+      const clients = res.clients || [];
+      renderClients(clients);
+    } catch (err) {
+      showToast("Error loading clients: " + err.message, "#ef4444");
+    }
+  }
+
+  function renderClients(clients) {
+    const grid = document.getElementById("clients-grid");
+    
+    if (clients.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column: 1/-1;">
+          <div class="empty-state-icon">👥</div>
+          <div class="empty-state-title">No Clients Yet</div>
+          <p style="color:var(--muted);max-width:400px;margin:0 auto;">Share your Coach Code <strong style="color:#60a5fa;cursor:pointer;" onclick="copyCoachCode()">${user.coach_code}</strong> with your clients to link them to your dashboard.</p>
+        </div>
+      `;
+      updateStats(0, 0, 0, 0);
+      return;
+    }
+
+    let high = 0, mod = 0, low = 0;
+    
+    grid.innerHTML = clients.map(c => {
+      const p = c.profile || {};
+      const latest = c.latest_prediction || {};
+      const risk = latest.risk_label || "Unknown";
+      
+      let badgeColor = "var(--muted)";
+      if (risk === "Low") { low++; badgeColor = "var(--green)"; }
+      else if (risk === "Moderate") { mod++; badgeColor = "var(--yellow)"; }
+      else if (risk === "High") { high++; badgeColor = "var(--red)"; }
+
+      const name = p.name || `User (${c.client_id})`;
+      const weight = p.weight ? `${p.weight} kg` : "—";
+      const goal = p.goal_weight ? `${p.goal_weight} kg` : "—";
+      const bmi = latest.bmi ? latest.bmi.toFixed(1) : "—";
+
+      return `
+        <div class="client-card" onclick="navigateTo('client-progress', { id: '${c.client_id}' })">
+          <div style="display:flex;justify-content:between;align-items:center;margin-bottom:1rem;">
+            <div class="client-name" style="margin:0">${name}</div>
+            <span style="background:rgba(255,255,255,0.05);border:1px solid ${badgeColor};color:${badgeColor};font-size:0.75rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:99px;text-transform:uppercase;letter-spacing:1px;margin-left:auto;">${risk}</span>
+          </div>
+          <div class="client-stats">
+            <div>Weight: <strong style="color:white">${weight}</strong></div>
+            <div>Goal: <strong style="color:white">${goal}</strong></div>
+            <div>BMI: <strong style="color:white">${bmi}</strong></div>
+          </div>
+          <div style="margin-top:1rem;font-size:0.75rem;color:var(--muted);display:flex;align-items:center;justify-content:between;">
+            <span>Last assessment: ${latest.timestamp ? new Date(latest.timestamp).toLocaleDateString() : 'Never'}</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    updateStats(clients.length, high, mod, low);
+  }
+
+  function updateStats(total, high, mod, low) {
+    document.getElementById("stat-total").textContent = total;
+    document.getElementById("stat-high").textContent = high;
+    document.getElementById("stat-mod").textContent = mod;
+    document.getElementById("stat-low").textContent = low;
+  }
+
+  // Load clients on startup
+  loadClients();
+</script>
+</body>
+</html>

@@ -34,161 +34,147 @@ body {
   line-height: 1.6;
 }
 
-/* ── PHYSICAL IPHONE SHELL ── */
-.ios-phone-frame {
-  width: var(--app-width);
-  height: 880px;
-  border: 14px solid #27272a;
-  border-radius: 54px;
-  background: #000;
-  box-shadow: 0 30px 70px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.06);
-  margin: 20px auto;
-  position: relative;
-  overflow: hidden;
+/* ── WEB APP SHELL ── */
+.web-app-container {
   display: flex;
   flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #110e2e 0%, #03020a 100%);
 }
 
-.ios-phone-screen {
+/* ── STATIC TOP NAVIGATION BAR ── */
+.web-nav-header {
+  background: rgba(11, 15, 25, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  padding: 0.75rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 1000;
+  flex-shrink: 0;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 800;
+  font-size: 1.2rem;
+  background: linear-gradient(135deg, #60a5fa, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+  text-decoration: none;
+}
+
+.nav-brand-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-item {
+  color: var(--muted, #94a3b8);
+  text-decoration: none;
+  padding: 0.55rem 1.1rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-item:hover {
+  color: var(--text, #ffffff);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-item.active {
+  color: #ffffff;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.nav-user-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  padding: 0.4rem 0.8rem;
+  border-radius: 12px;
+}
+
+.avatar-pill {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: white;
+}
+
+.web-main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   background: radial-gradient(circle at 50% 0%, #16142a, #07070b 80%) !important;
-  color: #f4f4f5 !important;
-  padding-top: 48px; /* space for status bar */
-  padding-bottom: 24px; /* space for home indicator */
   position: relative;
   scroll-behavior: smooth;
+  padding: 24px;
 }
 
-/* Scrollbar styling inside the phone screen */
-.ios-phone-screen::-webkit-scrollbar {
-  width: 4px;
+.web-main-content::-webkit-scrollbar {
+  width: 6px;
 }
-.ios-phone-screen::-webkit-scrollbar-track {
+.web-main-content::-webkit-scrollbar-track {
   background: transparent;
 }
-.ios-phone-screen::-webkit-scrollbar-thumb {
+.web-main-content::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.12);
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
-/* Top iOS status bar style */
-.ios-status-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 44px;
-  padding: 0 32px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 9999;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #ffffff;
-  pointer-events: none;
-  background: transparent;
-}
-.ios-status-icons {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-}
-
-/* Home Indicator bar style */
-.ios-home-indicator {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 140px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.4);
-  border-radius: 999px;
-  z-index: 9999;
-  pointer-events: none;
-}
-
-/* Dynamic Island Style */
-.ios-dynamic-island {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 110px;
-  height: 28px;
-  background: #000000;
-  border-radius: 20px;
-  z-index: 10000;
-  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
-  border: 0.5px solid rgba(255,255,255,0.06);
-}
-
-.ios-dynamic-island.expanded {
-  width: 330px;
-  height: 66px;
-  border-radius: 26px;
-  background: #111113;
-  border: 1px solid rgba(255,255,255,0.12);
-}
-
-.island-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 0 16px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.ios-dynamic-island.expanded .island-content {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.island-icon {
-  font-size: 1.5rem;
-}
-
-.island-text {
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-}
-
-.island-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.island-sub {
-  font-size: 0.72rem;
-  color: #a1a1aa;
-}
-
-/* Responsive shell overrides */
-@media (max-width: 450px), (max-height: 900px) {
-  .ios-phone-frame {
-    width: 100vw !important;
-    height: 100vh !important;
-    margin: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
+@media (max-width: 768px) {
+  .web-nav-header {
+    padding: 0.5rem 1rem;
+  }
+  .nav-links {
+    gap: 0.2rem;
+  }
+  .nav-item {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+  .web-main-content {
+    padding: 16px;
   }
 }
 
@@ -549,7 +535,7 @@ input[type=range]::-webkit-slider-thumb {
 .link-coach-section input { background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.75rem; color: #ffffff; font-family: var(--fm); width: 100%; margin-top: 0.45rem; outline: none; }
 .link-coach-section input:focus { border-color: var(--blue); }
 
-/* ── APP SHELL: IOS TAB BAR + PAGE TRANSITIONS ── */
+/* ── APP SHELL: WEB SIDEBAR + PAGE TRANSITIONS ── */
 body.page-transition-ready {
   opacity: 1;
   transform: translateY(0);
@@ -566,61 +552,103 @@ body.page-transition-exit {
   transform: translateY(-4px);
 }
 
-body.has-ios-tabbar .ios-phone-screen {
-  padding-bottom: 96px !important;
-}
-
-.ios-tabbar {
-  position: absolute; /* Relative to phone screen frame */
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 12px;
-  width: calc(100% - 24px);
-  background: rgba(18, 18, 24, 0.8);
+.web-sidebar {
+  width: 260px;
+  background: rgba(18, 18, 24, 0.95);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  border-radius: 20px;
-  padding: 0.4rem;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0.25rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
   z-index: 9999;
 }
 
-.ios-tab-item {
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2.5rem;
+  padding: 0 0.5rem;
+}
+
+.logo-icon {
+  font-size: 1.5rem;
+}
+
+.logo-text {
+  font-family: var(--fh);
+  font-size: 1.1rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #60a5fa, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sidebar-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebar-item {
   text-decoration: none;
   color: var(--muted);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.15rem;
+  gap: 1rem;
   border-radius: 12px;
-  padding: 0.35rem 0.2rem;
+  padding: 0.8rem 1rem;
   transition: background 0.2s ease, color 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
 }
 
-.ios-tab-item:hover {
+.sidebar-item:hover {
   background: rgba(10, 132, 255, 0.08);
   color: #0a84ff;
 }
 
-.ios-tab-item.active {
+.sidebar-item.active {
   background: rgba(10, 132, 255, 0.14);
   color: #60a5fa;
 }
 
-.ios-tab-icon {
-  font-size: 0.95rem;
-  line-height: 1;
+.sidebar-icon {
+  font-size: 1.2rem;
 }
 
-.ios-tab-label {
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  line-height: 1;
+@media (max-width: 768px) {
+  .web-sidebar {
+    width: 100%;
+    height: 70px;
+    border-right: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    flex-direction: row;
+    padding: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .sidebar-logo {
+    display: none;
+  }
+  .sidebar-links {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+  }
+  .sidebar-item {
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.4rem;
+    font-size: 0.65rem;
+  }
+  .sidebar-icon {
+    font-size: 1rem;
+  }
 }
 
 /* ── IOS-STYLE PAGE HELPERS FOR INLINE-STYLED SCREENS ── */
@@ -665,69 +693,72 @@ body:has(.onboard-card) {
   margin-bottom: 0.8rem !important;
 }
 
-/* ── APP-LIKE LAYOUT (FORCE MOBILE APP FEEL) ── */
-/* Keep all major screens constrained to iPhone-like width */
+/* ── RESPONSIVE WEB LAYOUT ── */
 .container,
 .chat-layout,
 .coach-container,
 .progress-container {
-  width: 100% !important;
-  max-width: 100% !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* Convert dashboard from desktop grid to mobile stacked app cards */
 .nexus-grid {
-  grid-template-columns: 1fr !important;
-  gap: 0.8rem !important;
-  height: auto !important;
-  padding: 0.8rem !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  margin: 0 auto !important;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
 }
 
 .nexus-grid > .panel {
-  border-radius: 20px !important;
-  padding: 1.1rem !important;
+  border-radius: 20px;
+  padding: 1.5rem;
 }
 
 .nexus-grid .hero-panel {
-  grid-column: auto !important;
-  min-height: 0 !important;
+  grid-column: 1 / -1; /* spans full width */
 }
 
-/* Coach and client pages should feel like in-app screens */
 .progress-grid {
-  grid-template-columns: 1fr !important;
-  gap: 0.8rem !important;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
 .clients-grid {
-  grid-template-columns: 1fr !important;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.2rem;
 }
 
 .stats-grid {
-  grid-template-columns: repeat(2, 1fr) !important;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
 }
 
-/* Chat should be full app panel, not floating desktop block */
 .chat-layout {
-  margin: 0.5rem auto 0 !important;
-  padding: 0 0.5rem !important;
+  height: calc(100vh - 48px);
+  padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-layout .panel {
-  height: calc(100% - 44px) !important;
-  border-radius: 22px !important;
+  flex: 1;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Tighter iOS-like controls */
-.field input,
-.field select,
-.chat-input,
-.login-input,
-.suggestion-box textarea {
-  min-height: 42px;
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .chat-layout {
+    height: calc(100vh - 120px);
+  }
+  .nexus-grid {
+    grid-template-columns: 1fr;
+  }
 }
+

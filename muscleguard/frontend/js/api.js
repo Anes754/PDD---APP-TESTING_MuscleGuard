@@ -162,129 +162,119 @@ function rewriteHtmlLinks() {
   // Keep explicit .html links unchanged for compatibility.
 }
 
-function setupIosShell() {
-  if (document.getElementById("ios-phone-frame")) return;
+function setupWebShell() {
+  if (document.getElementById("web-app-container")) return;
 
-  // Create the physical phone frame container
-  const frame = document.createElement("div");
-  frame.id = "ios-phone-frame";
-  frame.className = "ios-phone-frame";
+  const container = document.createElement("div");
+  container.id = "web-app-container";
+  container.className = "web-app-container";
 
-  // Create the phone screen viewport container
-  const screen = document.createElement("div");
-  screen.className = "ios-phone-screen";
+  const main = document.createElement("main");
+  main.className = "web-main-content";
 
-  // Move visual nodes into the screen
   const nodesToMove = [];
+  let existingHeader = null;
+
   const children = Array.from(document.body.children);
   children.forEach(child => {
-    if (child.tagName !== "SCRIPT" && child.tagName !== "LINK" && child.tagName !== "STYLE") {
+    if (child.tagName === "HEADER" && child.classList.contains("web-nav-header")) {
+      existingHeader = child;
+    } else if (child.tagName !== "SCRIPT" && child.tagName !== "LINK" && child.tagName !== "STYLE") {
       nodesToMove.push(child);
     }
   });
 
-  // Inject frame into body
-  document.body.appendChild(frame);
-  frame.appendChild(screen);
+  document.body.appendChild(container);
+
+  if (existingHeader) {
+    container.appendChild(existingHeader);
+  }
+
+  container.appendChild(main);
 
   nodesToMove.forEach(node => {
-    screen.appendChild(node);
+    main.appendChild(node);
   });
-
-  // Inject top iOS Status Bar inside the frame (fixed)
-  const statusBar = document.createElement("div");
-  statusBar.className = "ios-status-bar";
-  statusBar.innerHTML = `
-    <div class="ios-status-time" id="ios-time">9:41</div>
-    <div class="ios-status-icons">
-      <span>📶</span>
-      <span>🛜</span>
-      <span>🔋</span>
-    </div>
-  `;
-  frame.appendChild(statusBar);
-
-  // Inject Dynamic Island inside the frame (fixed)
-  const island = document.createElement("div");
-  island.className = "ios-dynamic-island";
-  island.id = "ios-dynamic-island";
-  island.innerHTML = `
-    <div class="island-content">
-      <span class="island-icon" id="island-icon">💪</span>
-      <div class="island-text">
-        <div class="island-title" id="island-title">MuscleGuard AI</div>
-        <div class="island-sub" id="island-sub">Secured Connection</div>
-      </div>
-    </div>
-  `;
-  frame.appendChild(island);
-
-  // Inject Home Indicator at bottom (fixed)
-  const homeIndicator = document.createElement("div");
-  homeIndicator.className = "ios-home-indicator";
-  frame.appendChild(homeIndicator);
-
-  // Toggle Dynamic Island expansion manually on click
-  island.addEventListener("click", () => {
-    island.classList.toggle("expanded");
-  });
-
-  // Ticking clock
-  const updateIosTime = () => {
-    const timeEl = document.getElementById("ios-time");
-    if (!timeEl) return;
-    const now = new Date();
-    let hours = now.getHours();
-    let minutes = now.getMinutes();
-    if (minutes < 10) minutes = "0" + minutes;
-    timeEl.textContent = `${hours}:${minutes}`;
-  };
-  updateIosTime();
-  setInterval(updateIosTime, 20000);
 }
 
 function triggerDynamicIsland(title, sub, icon = "💪", duration = 3500) {
-  const island = document.getElementById("ios-dynamic-island");
-  if (!island) return;
-
-  const iconEl = document.getElementById("island-icon");
-  const titleEl = document.getElementById("island-title");
-  const subEl = document.getElementById("island-sub");
-
-  iconEl.textContent = icon;
-  titleEl.textContent = title;
-  subEl.textContent = sub;
-
-  island.classList.add("expanded");
-
-  setTimeout(() => {
-    island.classList.remove("expanded");
-  }, duration);
+  showToast(`${icon} ${title}: ${sub}`, "#0a84ff");
 }
 window.triggerDynamicIsland = triggerDynamicIsland;
 
-function setupClientTabBar() {
+function setupTopNavbar() {
   const route = currentRoute();
+  // Don't add top navbar to login/register or onboarding
   if (!APP_SHELL.tabRoutes.has(route)) return;
-  if (document.querySelector(".ios-tabbar")) return;
 
-  document.body.classList.add("has-ios-tabbar");
-  const nav = document.createElement("nav");
-  nav.className = "ios-tabbar";
-  nav.setAttribute("aria-label", "Primary");
+  const user = store.get("user");
+  const profile = store.get("profile");
+  const userName = (profile && profile.name) ? profile.name : (user ? (user.name || "User") : "User");
+  const initials = userName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "MG";
 
-  nav.innerHTML = APP_SHELL.tabs.map((tab) => {
-    const active = route === tab.route || (route === "plan" && tab.route === "results");
-    return `
-      <a class="ios-tab-item${active ? " active" : ""}" href="${appPath(tab.route)}">
-        <span class="ios-tab-icon">${tab.icon}</span>
-        <span class="ios-tab-label">${tab.label}</span>
+  let header = document.querySelector(".web-nav-header");
+
+  if (!header) {
+    header = document.createElement("header");
+    header.className = "web-nav-header";
+
+    const navLinksHtml = [
+      { route: "dashboard", label: "🏠 Dashboard" },
+      { route: "workouts",  label: "🏋️ Workouts" },
+      { route: "results",   label: "📊 Analytics" },
+      { route: "chat",      label: "💬 Chat" },
+    ].map(item => {
+      const active = (route === item.route) || (route === "plan" && item.route === "results") || (route === "index" && item.route === "dashboard");
+      return `<a href="${appPath(item.route)}" class="nav-item${active ? " active" : ""}">${item.label}</a>`;
+    }).join("");
+
+    header.innerHTML = `
+      <a href="${appPath('dashboard')}" class="nav-brand">
+        <div class="nav-brand-icon">💪</div>
+        <span>MuscleGuard</span>
       </a>
-    `;
-  }).join("");
 
-  const container = document.getElementById("ios-phone-frame") || document.body;
-  container.appendChild(nav);
+      <nav class="nav-links">
+        ${navLinksHtml}
+      </nav>
+
+      <div class="nav-user-profile">
+        <div class="avatar-pill" id="nav-avatar-icon">${initials}</div>
+        <div style="font-size: 0.88rem; font-weight: 700;" id="u-name-top">${userName}</div>
+        <button onclick="navigateTo('index')" style="background:transparent; border:none; color:var(--muted, #94a3b8); cursor:pointer; font-size:1rem; padding:0 0.3rem;" title="Settings">⚙️</button>
+        <button onclick="logout()" style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:0.9rem; padding:0 0.3rem; font-weight:700;" title="Logout">🔓</button>
+      </div>
+    `;
+  }
+
+  // Ensure header is positioned before web-main-content inside web-app-container
+  const container = document.getElementById("web-app-container");
+  if (container) {
+    const mainContent = container.querySelector(".web-main-content");
+    if (mainContent && header.parentElement !== container) {
+      container.insertBefore(header, mainContent);
+    } else if (!container.contains(header)) {
+      container.prepend(header);
+    }
+  } else if (!document.body.contains(header)) {
+    document.body.prepend(header);
+  }
+
+  // Update active state and user initials
+  const navItems = header.querySelectorAll(".nav-item");
+  navItems.forEach(item => {
+    const href = item.getAttribute("href") || "";
+    if (href.includes(route) || (route === "plan" && href.includes("results"))) {
+      item.classList.add("active");
+    } else {
+      item.classList.remove("active");
+    }
+  });
+
+  const nameEl = document.getElementById("u-name-top");
+  if (nameEl && userName) nameEl.textContent = userName;
+  const avatarEl = document.getElementById("nav-avatar-icon");
+  if (avatarEl && initials) avatarEl.textContent = initials;
 }
 
 function registerServiceWorker() {
@@ -298,12 +288,12 @@ function registerServiceWorker() {
 
 function setupAppShell() {
   if (!document.body) return;
-  setupIosShell();
+  setupWebShell();
   document.body.classList.add("page-transition-enter");
   setupPwaMeta();
   rewriteHtmlLinks();
   setupPageTransitions();
-  setupClientTabBar();
+  setupTopNavbar();
   registerServiceWorker();
 }
 
@@ -422,7 +412,7 @@ function showToast(msg, color = "#22c55e") {
   t.className = "toast";
   t.style.borderLeftColor = color;
   t.textContent = msg;
-  const container = document.querySelector(".ios-phone-screen") || document.body;
+  const container = document.querySelector(".web-main-content") || document.body;
   container.appendChild(t);
   setTimeout(() => t.remove(), 3000);
 }
