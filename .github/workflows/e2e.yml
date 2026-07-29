@@ -1,4 +1,5 @@
 name: MuscleGuard Automated Test Suite & Reports
+run-name: MuscleGuard Automated Test Suite & Reports
 
 on:
   push:
