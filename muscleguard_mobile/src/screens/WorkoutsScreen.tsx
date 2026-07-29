@@ -154,7 +154,7 @@ export const WorkoutsScreen = () => {
             {activePlan.map((dayPlan, idx) => {
               const isToday = dayPlan.day === todayName;
               return (
-                <GlassCard key={idx} style={[styles.dayCard, isToday && styles.dayCardToday]}>
+                <GlassCard key={idx} style={{ ...styles.dayCard, ...(isToday ? styles.dayCardToday : {}) }}>
                   <View style={styles.dayCardHeader}>
                     <Text style={[styles.dayCardTitle, isToday && { color: Colors.blueLight }]}>{dayPlan.day}</Text>
                     <View style={[styles.miniBadge, { backgroundColor: dayPlan.active ? 'rgba(48, 209, 88, 0.15)' : 'rgba(255,255,255,0.05)' }]}>

@@ -81,19 +81,19 @@ export const CoachDashboardScreen = ({ navigation }: any) => {
 
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
-          <GlassCard style={[styles.statCardMobile, { width: '48%' }]}>
+          <GlassCard style={{ ...styles.statCardMobile, width: '48%' }}>
             <Text style={styles.statLabelSm}>Total Clients</Text>
             <Text style={styles.statValueLg}>{totalClients}</Text>
           </GlassCard>
-          <GlassCard style={[styles.statCardMobile, { width: '48%', borderTopWidth: 3, borderTopColor: Colors.red }]}>
+          <GlassCard style={{ ...styles.statCardMobile, width: '48%', borderTopWidth: 3, borderTopColor: Colors.red }}>
             <Text style={styles.statLabelSm}>High Risk</Text>
             <Text style={[styles.statValueLg, { color: Colors.red }]}>{highRiskCount}</Text>
           </GlassCard>
-          <GlassCard style={[styles.statCardMobile, { width: '48%', borderTopWidth: 3, borderTopColor: Colors.yellow }]}>
+          <GlassCard style={{ ...styles.statCardMobile, width: '48%', borderTopWidth: 3, borderTopColor: Colors.yellow }}>
             <Text style={styles.statLabelSm}>Moderate Risk</Text>
             <Text style={[styles.statValueLg, { color: Colors.yellow }]}>{modRiskCount}</Text>
           </GlassCard>
-          <GlassCard style={[styles.statCardMobile, { width: '48%', borderTopWidth: 3, borderTopColor: Colors.green }]}>
+          <GlassCard style={{ ...styles.statCardMobile, width: '48%', borderTopWidth: 3, borderTopColor: Colors.green }}>
             <Text style={styles.statLabelSm}>Low Risk</Text>
             <Text style={[styles.statValueLg, { color: Colors.green }]}>{lowRiskCount}</Text>
           </GlassCard>
