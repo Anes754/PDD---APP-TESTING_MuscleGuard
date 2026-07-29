@@ -22,6 +22,9 @@ jobs:
           done
           echo "All 300 Selenium tests completed successfully!"
 
+      - name: Install Dependencies
+        run: pip install pandas openpyxl
+
       - name: Generate Excel Test Reports
         run: |
           python <<EOF
