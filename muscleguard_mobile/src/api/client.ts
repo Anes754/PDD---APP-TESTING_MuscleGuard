@@ -83,11 +83,6 @@ export const ApiServices = {
     return res.data;
   },
 
-  async askBot(userId: string, question: string) {
-    const res = await api.post('/bot/ask', { user_id: userId, question });
-    return res.data;
-  },
-
   async getCoachClients(coachId: string) {
     const res = await api.get(`/coach/clients/${coachId}`);
     return res.data;

@@ -61,7 +61,7 @@ export const RegisterScreen = ({ navigation }: any) => {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <GlassCard style={styles.card}>
-            <Text style={styles.logo}>💪 MUSCLEGUARD AI</Text>
+            <Text style={styles.logo}>💪 MUSCLEGUARD</Text>
             <Text style={styles.title}>Create Account</Text>
 
             {/* Role Toggle */}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MuscleGuard AI — Results</title>
+<title>MuscleGuard — Results</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
@@ -11,7 +11,7 @@
 <div class="container fade-in">
 
   <div class="topbar">
-    <a href="dashboard.html" class="logo">💪 MUSCLEGUARD AI</a>
+    <a href="dashboard.html" class="logo">💪 MUSCLEGUARD</a>
     <div class="stepper">
       <div class="step step-done">✓ Profile</div>
       <div class="step-line"></div>
@@ -25,7 +25,7 @@
   <div class="banner" id="banner">
     <div>
       <div class="banner-sub" id="banner-sub">Muscle Loss Risk Assessment</div>
-      <div class="banner-title">AI ANALYSIS SUMMARY</div>
+      <div class="banner-title">ANALYSIS SUMMARY</div>
     </div>
     <div class="risk-badge" id="risk-badge">—</div>
   </div>
@@ -275,7 +275,7 @@ function renderResults(result, prev, calorieHistory) {
   const intens = result.avg_intensity    ?? 5;
   const recosList = [
     wlr > 0.2
-      ? { title:"⚡ Weight Loss Too Aggressive", body:"Slowing deficit reduces muscle catabolism risk. Aim for 0.07–0.2 kg/day.", color:"#ff453a" }
+      ? { title:"⚡ Weight Loss Too Aggressive", body:"Slowing deficit reduces muscle catabolism risk.m for 0.07–0.2 kg/day.", color:"#ff453a" }
       : wlr < 0.07
       ? { title:"🐢 Conservative Deficit",       body:"Safe pace — consider increasing activity slightly if desired.",          color:"#0a84ff" }
       : { title:"✅ Healthy Fat Loss Range",      body:"Maintain current deficit and monitor weekly progress.",                 color:"#30d158" },

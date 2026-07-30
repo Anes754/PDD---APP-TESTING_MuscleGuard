@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MuscleGuard AI — Nexus Dashboard</title>
+<title>MuscleGuard — Nexus Dashboard</title>
 <link rel="stylesheet" href="css/style.css">
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <style>
@@ -196,14 +196,14 @@
 
   <!-- RIGHT: COACHING & LOGGING -->
   <aside class="panel">
-    <div class="stat-label" style="margin-bottom:1rem;">AI Coaching</div>
+    <div class="stat-label" style="margin-bottom:1rem;">Coaching</div>
     <div class="coach-card" id="coach-text">
       "Log your workout for today to get a real-time risk assessment."
     </div>
 
     <hr style="border:0;border-top:1px solid var(--glass-border);margin:1.5rem 0;">
 
-    <div class="stat-label" style="margin-bottom:1rem;">AI Metabolism Insights</div>
+    <div class="stat-label" style="margin-bottom:1rem;">Metabolism Insights</div>
     <div style="display:flex; flex-direction:column; gap:0.9rem;">
       <!-- STREAK CARD -->
       <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border); padding: 0.8rem 1rem; border-radius: 12px; display: flex; align-items: center; gap: 0.8rem;">
@@ -244,7 +244,7 @@
     </div>
 
     <button class="btn btn-ghost" style="display:flex;align-items:center;justify-content:center;padding:0.8rem;border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:white;font-weight:700;margin-bottom:1.5rem;width:100%;" onclick="navigateTo('chat')">
-      💬 Chat & AI Assistant <span id="unread-count-badge" class="unread-badge" style="display:none;">0</span>
+      💬 Chat & Assistant <span id="unread-count-badge" class="unread-badge" style="display:none;">0</span>
     </button>
 
     <button class="btn btn-ghost" style="margin-top:auto;" onclick="logout()">🔓 Logout</button>
@@ -434,7 +434,7 @@
       statusBadge.textContent = (history.length > 0) ? "Existing User" : "New User";
     }
 
-    // ── Update AI Metabolism Insights ──
+    // ── Update Metabolism Insights ──
     const latest = history[0] || {};
     
     // 1. Calculate low risk streak (Low risk = risk score < 30)
@@ -566,7 +566,7 @@
     
     if ((latest.avg_intensity || 0) < 4 && latest.avg_intensity > 0) {
       coachMsg = "Gym intensity is on the lower side. Add strength work tomorrow to maintain protein synthesis.";
-      focusMsg = "Target Strength Focus. Aim for 3 sets of compound movements (e.g. goblet squats, dumbbell rows) tomorrow.";
+      focusMsg = "Target Strength Focus.m for 3 sets of compound movements (e.g. goblet squats, dumbbell rows) tomorrow.";
     } else if (latest.weight_loss_rate > 0.2) {
       coachMsg = "Aggressive weight loss detected! High risk of muscle catabolism. Increase protein intake.";
       const prot = (latest.protein_intake || 150).toFixed(0);

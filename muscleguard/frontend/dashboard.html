@@ -684,7 +684,7 @@
         `;
       }
       
-      const unreadCount = await apiGetUnreadCount(user.user_id);
+      const unreadCount = await apiGetUnreadCount(user.user_id, coach ? coach.coach_id : null);
       const badge = document.getElementById("unread-count-badge");
       if (unreadCount > 0) {
         badge.textContent = unreadCount;

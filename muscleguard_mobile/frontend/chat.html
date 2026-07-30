@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MuscleGuard AI — Messaging Center</title>
+<title>MuscleGuard — Messaging Center</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
   :root {
@@ -74,7 +74,7 @@
     <!-- Navigation Tabs -->
     <div class="chat-tabs">
       <button class="chat-tab active" id="tab-coach" onclick="switchTab('coach')">💬 Coach Chat</button>
-      <button class="chat-tab" id="tab-bot" onclick="switchTab('bot')">🤖 AI Fitness Bot</button>
+      <button class="chat-tab" id="tab-bot" onclick="switchTab('bot')">🤖 Fitness Bot</button>
     </div>
 
     <!-- Main Message Area -->
@@ -175,11 +175,11 @@
         showUnlinkedUI();
       }
     } else {
-      // AI Fitness Bot Chat
+      // Fitness Bot Chat
       clearInterval(coachPollTimer);
       coachPollTimer = null;
       
-      document.getElementById("chat-partner-name").textContent = "AI Fitness Assistant";
+      document.getElementById("chat-partner-name").textContent = "Fitness Assistant";
       document.getElementById("chat-partner-sub").textContent = "Local Data-Driven Bot";
       document.getElementById("link-coach-overlay").style.display = "none";
       container.style.display = "flex";
@@ -214,7 +214,7 @@
         const container = document.getElementById("chat-messages-container");
         container.innerHTML = `
           <div class="msg-bubble msg-bot">
-            Hi ${user.name}! I'm your local AI health assistant. I analyze your profile and historical metrics (protein intake, muscle loss risk, average workout intensity, and weight goals) to answer your training questions.<br><br>
+            Hi ${user.name}! I'm your local health assistant. I analyze your profile and historical metrics (protein intake, muscle loss risk, average workout intensity, and weight goals) to answer your training questions.<br><br>
             Ask me things like:<br>
             • <em>"Am I eating enough protein?"</em><br>
             • <em>"What is my muscle loss risk score?"</em><br>
@@ -247,7 +247,7 @@
       if (m.msg_type === "suggestion") {
         label = `<div class="msg-label" style="color:#fb923c">Coach Suggestion</div>`;
       } else if (m.sender_id === "bot") {
-        label = `<div class="msg-label" style="color:#60a5fa">AI Assistant</div>`;
+        label = `<div class="msg-label" style="color:#60a5fa">Assistant</div>`;
       }
 
       return `

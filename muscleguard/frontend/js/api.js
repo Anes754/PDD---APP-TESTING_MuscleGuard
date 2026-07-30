@@ -617,8 +617,10 @@ async function apiGetMessages(userId, otherId) {
   return res.json();
 }
 
-async function apiGetUnreadCount(userId) {
-  const res = await fetch(`${API}/messages/unread/${userId}`);
+async function apiGetUnreadCount(userId, senderId = null) {
+  let url = `${API}/messages/unread/${userId}`;
+  if (senderId) url += `?sender_id=${senderId}`;
+  const res = await fetch(url);
   if (!res.ok) return 0;
   const json = await res.json();
   return json.count || 0;

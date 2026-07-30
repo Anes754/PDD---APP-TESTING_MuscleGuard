@@ -55,7 +55,7 @@ export const LoginScreen = ({ navigation }: any) => {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <GlassCard style={styles.card}>
-            <Text style={styles.logo}>💪 MUSCLEGUARD AI</Text>
+            <Text style={styles.logo}>💪 MUSCLEGUARD</Text>
             <Text style={styles.title}>Welcome Back</Text>
 
             {/* Role Toggle */}
@@ -117,7 +117,7 @@ export const LoginScreen = ({ navigation }: any) => {
               <Text style={styles.secondaryBtnText}>NEW USER? GET STARTED</Text>
             </TouchableOpacity>
 
-            <Text style={styles.footerText}>Secure AI-powered fitness monitoring</Text>
+            <Text style={styles.footerText}>Secure fitness monitoring</Text>
           </GlassCard>
         </ScrollView>
       </SafeAreaView>

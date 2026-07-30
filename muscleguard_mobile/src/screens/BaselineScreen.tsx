@@ -140,7 +140,7 @@ export const BaselineScreen = ({ navigation }: any) => {
           </View>
 
           <Text style={styles.heroTitle}>STEP 2: BASELINE DATA</Text>
-          <Text style={styles.heroSub}>Please enter your workout data for the last 7 days to calibrate your risk profile.</Text>
+          <Text style={styles.heroSub}>Please enter your workout data for the last 7 days to calibrate your profile.</Text>
 
           <GlassCard>
             <Text style={styles.sectionTitle}>7-DAY CONFIGURATION</Text>

@@ -17,7 +17,7 @@ from database import (
 from bot import ask_bot
 import uvicorn
 
-app = FastAPI(title="MuscleGuard AI API", version="1.0.0")
+app = FastAPI(title="MuscleGuard API", version="1.0.0")
 
 # Mount frontend static files
 frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
@@ -308,7 +308,7 @@ async def mark_read(data: MarkReadRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ── Local Data-Driven AI Bot Endpoint ──
+# ── Local Data-Driven Assistant Endpoint ──
 
 @app.post("/bot/ask")
 async def ask_bot_endpoint(data: BotQueryRequest):

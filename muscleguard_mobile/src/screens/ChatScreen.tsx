@@ -8,7 +8,6 @@ import {
   ScrollView,
   SafeAreaView,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,14 +17,11 @@ import { ApiServices } from '../api/client';
 import { AppStorage, StorageKeys } from '../storage';
 
 export const ChatScreen = ({ route, navigation }: any) => {
-  const [activeTab, setActiveTab] = useState<'coach' | 'bot'>('coach');
   const [coachCode, setCoachCode] = useState('');
   const [coachMessages, setCoachMessages] = useState<any[]>([]);
-  const [botMessages, setBotMessages] = useState<any[]>([]);
   const [inputMsg, setInputMsg] = useState('');
   const [coachInfo, setCoachInfo] = useState<any>(null);
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
   // If we came from CoachDashboard, we have a clientId
@@ -46,29 +42,13 @@ export const ChatScreen = ({ route, navigation }: any) => {
         await ApiServices.markMessagesRead(u.user_id, clientTargetId);
       } else {
         // Client side
-        if (activeTab === 'coach') {
-          const c = await ApiServices.getCoach(u.user_id);
-          if (c && c.data) {
-            setCoachInfo(c.data);
-            const targetCoachId = c.data.coach_id || c.data.user_id;
-            const m = await ApiServices.getMessages(u.user_id, targetCoachId);
-            if (m && m.messages) setCoachMessages(m.messages);
-            await ApiServices.markMessagesRead(u.user_id, targetCoachId);
-          }
-        } else {
-          // AI Bot messages
-          const m = await ApiServices.getMessages(u.user_id, 'bot');
-          if (m && m.messages) {
-            if (m.messages.length === 0) {
-              setBotMessages([{
-                sender_id: 'bot',
-                content: `Hi! I'm your AI Assistant. Ask me anything about your diet, workouts, or risk levels!`,
-                timestamp: new Date().toISOString()
-              }]);
-            } else {
-              setBotMessages(m.messages);
-            }
-          }
+        const c = await ApiServices.getCoach(u.user_id);
+        if (c && c.data) {
+          setCoachInfo(c.data);
+          const targetCoachId = c.data.coach_id || c.data.user_id;
+          const m = await ApiServices.getMessages(u.user_id, targetCoachId);
+          if (m && m.messages) setCoachMessages(m.messages);
+          await ApiServices.markMessagesRead(u.user_id, targetCoachId);
         }
       }
     } catch (e) {
@@ -81,7 +61,7 @@ export const ChatScreen = ({ route, navigation }: any) => {
       loadMessages();
       const interval = setInterval(loadMessages, 10000);
       return () => clearInterval(interval);
-    }, [activeTab, isCoachMode, clientTargetId])
+    }, [isCoachMode, clientTargetId])
   );
 
   const handleLinkCoach = async () => {
@@ -93,13 +73,12 @@ export const ChatScreen = ({ route, navigation }: any) => {
       const res = await ApiServices.linkCoach(user.user_id, coachCode);
       if (res.success) {
         Alert.alert('Success', 'Coach linked successfully!');
-        setActiveTab('coach');
         loadMessages();
       } else {
         Alert.alert('Link Failed', res.message || 'Invalid coach code');
       }
     } catch (e: any) {
-      Alert.alert('Error', 'Failed to link coach');
+      Alert.alert('Error', e.message || 'Failed to link coach');
     }
   };
 
@@ -108,43 +87,30 @@ export const ChatScreen = ({ route, navigation }: any) => {
     const text = inputMsg;
     setInputMsg('');
 
-    if (activeTab === 'bot' && !isCoachMode) {
-      const userMsg = { sender_id: user.user_id, content: text, timestamp: new Date().toISOString() };
-      setBotMessages(prev => [...prev, userMsg]);
-      try {
-        const res = await ApiServices.askBot(user.user_id, text);
-        if (res.success) {
-          const botMsg = { sender_id: 'bot', content: res.reply, timestamp: new Date().toISOString() };
-          setBotMessages(prev => [...prev, botMsg]);
-        }
-      } catch (e) {
-        console.log('Bot error:', e);
-      }
-    } else {
-      const targetId = isCoachMode ? clientTargetId : (coachInfo?.coach_id || coachInfo?.user_id);
-      if (!targetId) {
-        Alert.alert('Error', 'No trainer linked. Please link a trainer first.');
-        return;
-      }
-      
-      const msgType = isCoachMode ? 'suggestion' : 'message';
-      const newMsg = {
-        sender_id: user.user_id,
-        content: text,
-        msg_type: msgType,
-        timestamp: new Date().toISOString()
-      };
+    // Send to Coach or Client
+    const targetId = isCoachMode ? clientTargetId : (coachInfo?.coach_id || coachInfo?.user_id);
+    if (!targetId) {
+      Alert.alert('Error', 'No trainer linked. Please link a trainer first.');
+      return;
+    }
 
-      setCoachMessages(prev => [...prev, newMsg]);
-      try {
-        await ApiServices.sendMessage(user.user_id, targetId, text, msgType);
-      } catch (e) {
-        console.log('Send message error:', e);
-      }
+    const msgType = isCoachMode ? 'suggestion' : 'message';
+    const newMsg = {
+      sender_id: user.user_id,
+      content: text,
+      msg_type: msgType,
+      timestamp: new Date().toISOString()
+    };
+
+    setCoachMessages(prev => [...prev, newMsg]);
+    try {
+      await ApiServices.sendMessage(user.user_id, targetId, text, msgType);
+    } catch (e) {
+      console.log('Send message error:', e);
     }
   };
 
-  const currentMessages = activeTab === 'coach' || isCoachMode ? coachMessages : botMessages;
+  const currentMessages = coachMessages;
 
   return (
     <LinearGradient colors={[Colors.bgRadialCore, Colors.bgMain]} style={styles.container}>
@@ -162,27 +128,9 @@ export const ChatScreen = ({ route, navigation }: any) => {
           </Text>
         </View>
 
-        {/* TAB TOGGLE */}
-        {!isCoachMode && (
-          <View style={styles.tabToggle}>
-            <TouchableOpacity
-              style={[styles.tabBtn, activeTab === 'coach' && styles.tabBtnActive]}
-              onPress={() => setActiveTab('coach')}
-            >
-              <Text style={[styles.tabText, activeTab === 'coach' && styles.tabTextActive]}>COACH</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tabBtn, activeTab === 'bot' && styles.tabBtnActive]}
-              onPress={() => setActiveTab('bot')}
-            >
-              <Text style={[styles.tabText, activeTab === 'bot' && styles.tabTextActive]}>🤖 AI ASSISTANT</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
         {/* CONTENT */}
         <View style={styles.contentArea}>
-          {activeTab === 'coach' && !coachInfo && !isCoachMode ? (
+          {!coachInfo && !isCoachMode ? (
             <ScrollView contentContainerStyle={styles.unlinkedScroll}>
               <GlassCard style={styles.unlinkedCard}>
                 <Text style={styles.handEmoji}>🤝</Text>
@@ -262,19 +210,6 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
   headerTitle: { fontSize: 18, fontWeight: '700', color: Colors.textPrimary },
   headerSub: { fontSize: 12, color: Colors.textTertiary, marginTop: 2 },
-  tabToggle: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderColor: Colors.glassBorder,
-    borderWidth: 1,
-    borderRadius: 12,
-    marginHorizontal: 16,
-    padding: 4,
-  },
-  tabBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 10 },
-  tabBtnActive: { backgroundColor: Colors.blue },
-  tabText: { color: Colors.textSecondary, fontSize: 12, fontWeight: '600' },
-  tabTextActive: { color: '#FFF', fontWeight: '800' },
   contentArea: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
   unlinkedScroll: { paddingBottom: 100 },
   unlinkedCard: { alignItems: 'center', padding: 20 },

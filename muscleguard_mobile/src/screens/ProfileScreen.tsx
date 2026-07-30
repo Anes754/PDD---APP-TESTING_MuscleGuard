@@ -95,7 +95,7 @@ export const ProfileScreen = ({ navigation, route }: any) => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* TOPBAR */}
           <View style={styles.topbar}>
-            <Text style={styles.logo}>💪 MUSCLEGUARD AI</Text>
+            <Text style={styles.logo}>💪 MUSCLEGUARD</Text>
             <TouchableOpacity
               style={styles.backBtn}
               onPress={() => navigation.replace('MainTabs')}

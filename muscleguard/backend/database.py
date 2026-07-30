@@ -199,9 +199,12 @@ async def get_messages(user_id: str, other_id: str, limit: int = 50) -> list:
         m["_id"] = str(m["_id"])
     return msgs
 
-async def get_unread_count(user_id: str) -> int:
+async def get_unread_count(user_id: str, sender_id: str = None) -> int:
     """Count unread messages for a user."""
-    count = await messages_col.count_documents({"receiver_id": user_id, "read": False})
+    query = {"receiver_id": user_id, "read": False}
+    if sender_id:
+        query["sender_id"] = sender_id
+    count = await messages_col.count_documents(query)
     return count
 
 async def mark_messages_read(user_id: str, sender_id: str):

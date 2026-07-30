@@ -285,9 +285,9 @@ async def send_msg(data: SendMessageRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/messages/unread/{user_id}")
-async def get_unread(user_id: str):
+async def get_unread(user_id: str, sender_id: str = None):
     try:
-        count = await get_unread_count(user_id)
+        count = await get_unread_count(user_id, sender_id)
         return {"success": True, "count": count}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

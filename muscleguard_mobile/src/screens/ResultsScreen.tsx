@@ -58,7 +58,7 @@ export const ResultsScreen = () => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* STEPPER HEADER */}
           <View style={styles.stepperHeader}>
-            <Text style={styles.logoText}>💪 MUSCLEGUARD AI</Text>
+            <Text style={styles.logoText}>💪 MUSCLEGUARD</Text>
             <View style={styles.stepperRow}>
               <View style={styles.stepGreen}><Text style={styles.stepGreenText}>✓ PROFILE</Text></View>
               <View style={styles.stepGreen}><Text style={styles.stepGreenText}>✓ WORKOUTS</Text></View>
@@ -66,12 +66,12 @@ export const ResultsScreen = () => {
             </View>
           </View>
 
-          {/* AI ANALYSIS SUMMARY CARD */}
+          {/* ANALYSIS SUMMARY CARD */}
           <GlassCard>
             <View style={styles.heroRow}>
               <View style={styles.heroLeft}>
                 <Text style={styles.assessTitle}>MUSCLE LOSS RISK ASSESSMENT · {userName}</Text>
-                <Text style={styles.summaryTitle}>AI ANALYSIS SUMMARY</Text>
+                <Text style={styles.summaryTitle}>ANALYSIS SUMMARY</Text>
               </View>
               <View style={[styles.highRiskPill, { borderColor: riskColor + '88', backgroundColor: riskColor + '33' }]}>
                 <Text style={[styles.highRiskText, { color: riskColor }]}>{riskLabel.split(' ')[0]}</Text>

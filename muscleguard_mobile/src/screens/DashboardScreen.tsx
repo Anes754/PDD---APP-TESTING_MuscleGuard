@@ -100,7 +100,7 @@ export const DashboardScreen = ({ navigation }: any) => {
   const modPct = Math.round(probs[1] * 100);
   const highPct = Math.round(probs[2] * 100);
 
-  // Advanced AI Metrics
+  // Advanced Metrics
   const lowRiskDays = history.filter(h => {
     const p = h.probabilities || [0.33, 0.33, 0.33];
     const s = p[0] * 0 + p[1] * 50 + p[2] * 100;
@@ -247,14 +247,14 @@ export const DashboardScreen = ({ navigation }: any) => {
             )}
           </GlassCard>
 
-          {/* AI COACHING BOX */}
-          <Text style={styles.sectionTitle}>AI Coaching</Text>
+          {/* COACHING BOX */}
+          <Text style={styles.sectionTitle}>Coaching</Text>
           <View style={styles.coachCard}>
             <Text style={styles.coachCardText}>{coachMsg}</Text>
           </View>
 
           {/* AI METABOLISM INSIGHTS */}
-          <Text style={styles.sectionTitle}>AI Metabolism Insights</Text>
+          <Text style={styles.sectionTitle}>Metabolism Insights</Text>
           <GlassCard style={{ padding: 12, marginBottom: 12, flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{ fontSize: 24, marginRight: 12 }}>🔥</Text>
             <View>
@@ -326,7 +326,7 @@ export const DashboardScreen = ({ navigation }: any) => {
             style={[styles.saveBtn, { backgroundColor: 'rgba(255,255,255,0.05)', borderColor: Colors.glassBorder, borderWidth: 1, marginBottom: 40 }]}
             onPress={() => navigation.navigate('Chat')}
           >
-            <Text style={[styles.saveBtnText, { color: Colors.textPrimary }]}>💬 CHAT & AI ASSISTANT</Text>
+            <Text style={[styles.saveBtnText, { color: Colors.textPrimary }]}>💬 CHAT & ASSISTANT</Text>
           </TouchableOpacity>
 
         </ScrollView>
