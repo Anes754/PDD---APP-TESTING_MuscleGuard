@@ -56,7 +56,8 @@ jobs:
               "Appium — Android Tests", 
               "Unit Tests — API", 
               "Validation Tests", 
-              "Load Testing — Performance"
+              "Load Testing — Performance",
+              "Vulnerability Tests — Security"
           ]
 
           for cat in categories:
