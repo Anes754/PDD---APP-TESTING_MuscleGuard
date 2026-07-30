@@ -135,6 +135,18 @@ export const DashboardScreen = ({ navigation }: any) => {
     } else if (history.length > 0) {
       coachMsg = "Excellent anabolic balance! You are in the premium Muscle Preservation Zone. Keep it up.";
     }
+
+    // Weather-based suggestions
+    const weather = latestResult.weather || 'Sunny';
+    let weatherAdvice = "";
+    if (weather === 'Sunny') {
+      weatherAdvice = "\n\n☀️ It's sunny today! Ensure extra hydration (add 500ml) to maintain peak performance during your session.";
+    } else if (weather === 'Cloudy') {
+      weatherAdvice = "\n\n☁️ Cloudy skies detected. Ideal temperature for a steady-state cardio session or extending your workout duration by 10%.";
+    } else if (weather === 'Rainy') {
+      weatherAdvice = "\n\n🌧️ Rainy day. Stick to your indoor routine. Focus on high-intensity intervals to maximize metabolic rate.";
+    }
+    focusMsg += weatherAdvice;
   }
 
   return (
