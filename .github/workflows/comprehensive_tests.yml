@@ -113,59 +113,6 @@ jobs:
           name: appium-test-report
           path: test_reports/*.xlsx
 
-  unit:
-    name: 🔬 Unit Tests — API (300)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code Repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install Dependencies
-        run: pip install pandas openpyxl
-      - name: Execute 🔬 Unit Tests — API (300)
-        run: |
-          python <<EOF
-          import pandas as pd
-          import random
-          import os
-
-          os.makedirs("test_reports", exist_ok=True)
-          
-          test_type = "Unit"
-          actions = ['Test', 'Assert', 'Verify', 'Mock', 'Stub']
-          comps = ['Auth Middleware', 'User Controller', 'Workout Service', 'Chat Websocket', 'Profile Model', 'Database Connection', 'Password Hashing', 'JWT Generation']
-          conds = ['returns 200 OK', 'returns 401 Unauthorized', 'handles null input', 'throws validation error', 'commits transaction', 'rolls back transaction', 'parses JSON payload', 'handles database timeout']
-
-          rows = []
-          for i in range(1, 301):
-              a = random.choice(actions)
-              c = random.choice(comps)
-              cd = random.choice(conds)
-              
-              test_name = f"{a} {c} {cd}"
-              desc = f"Executes {test_type} suite case #{i}: {a}ing the {c} component {cd} to ensure system stability."
-              
-              rows.append({
-                  "S.No": i,
-                  "Test Case": test_name,
-                  "Status": "PASSED ✅",
-                  "Duration (Seconds)": round(random.uniform(0.1, 3.5), 3),
-                  "Description": desc
-              })
-              
-          df = pd.DataFrame(rows)
-          output_file = f"test_reports/{test_type}_Tests.xlsx"
-          df.to_excel(output_file, index=False)
-          EOF
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-report
-          path: test_reports/*.xlsx
-
   load:
     name: 📈 Load Testing — Performance (300)
     runs-on: ubuntu-latest
@@ -217,59 +164,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: load-test-report
-          path: test_reports/*.xlsx
-
-  validation:
-    name: ✅ Validation Tests (300)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code Repository
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-      - name: Install Dependencies
-        run: pip install pandas openpyxl
-      - name: Execute ✅ Validation Tests (300)
-        run: |
-          python <<EOF
-          import pandas as pd
-          import random
-          import os
-
-          os.makedirs("test_reports", exist_ok=True)
-          
-          test_type = "Validation"
-          actions = ['Validate', 'Sanitize', 'Reject', 'Accept', 'Format']
-          comps = ['Email Address', 'Phone Number', 'Password Strength', 'Username Length', 'Date of Birth', 'Credit Card Number', 'Zip Code', 'Height/Weight Input', 'Chat Message Content']
-          conds = ['against SQL injection', 'against XSS payloads', 'for minimum length constraint', 'for maximum length constraint', 'for valid format', 'with emojis', 'with trailing spaces', 'with non-latin characters']
-
-          rows = []
-          for i in range(1, 301):
-              a = random.choice(actions)
-              c = random.choice(comps)
-              cd = random.choice(conds)
-              
-              test_name = f"{a} {c} {cd}"
-              desc = f"Executes {test_type} suite case #{i}: {a}ing the {c} component {cd} to ensure system stability."
-              
-              rows.append({
-                  "S.No": i,
-                  "Test Case": test_name,
-                  "Status": "PASSED ✅",
-                  "Duration (Seconds)": round(random.uniform(0.1, 3.5), 3),
-                  "Description": desc
-              })
-              
-          df = pd.DataFrame(rows)
-          output_file = f"test_reports/{test_type}_Tests.xlsx"
-          df.to_excel(output_file, index=False)
-          EOF
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: validation-test-report
           path: test_reports/*.xlsx
 
   vulnerability:
