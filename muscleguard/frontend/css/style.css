@@ -682,10 +682,10 @@ body:has(.onboard-card) {
 .login-card,
 .onboard-card {
   width: 100% !important;
-  max-width: calc(100% - 24px) !important;
+  max-width: 420px !important;
   border-radius: 24px !important;
-  padding: 1.5rem 1.2rem !important;
-  margin: auto 12px !important;
+  padding: 2.5rem 2rem !important;
+  margin: auto !important;
 }
 
 .login-card .login-logo {
