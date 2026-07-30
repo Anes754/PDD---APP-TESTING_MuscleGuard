@@ -94,8 +94,8 @@ export const DashboardScreen = ({ navigation }: any) => {
   const goalWeight = profile?.goal_weight || 68;
   const initials = name ? name.substring(0, 2).toUpperCase() : 'MG';
 
-  const riskLabel = latestResult?.risk_label || 'CRITICAL RISK';
-  const probs = latestResult?.probabilities || [0.10, 0.04, 0.86];
+  const riskLabel = latestResult?.risk_label || 'SAFE ZONE';
+  const probs = latestResult?.probabilities || [0.94, 0.04, 0.02];
   const lowPct = Math.round(probs[0] * 100);
   const modPct = Math.round(probs[1] * 100);
   const highPct = Math.round(probs[2] * 100);
@@ -202,8 +202,12 @@ export const DashboardScreen = ({ navigation }: any) => {
             {/* SCORE DISPLAY (Mimicking Gauge) */}
             <View style={styles.scoreCircleContainer}>
               <View style={[styles.scoreCircle, { borderColor: riskLevel === '0' ? Colors.green : riskLevel === '1' ? Colors.yellow : Colors.red }]}>
-                <Text style={styles.scoreNumber}>{lowPct}%</Text>
-                <Text style={{color: Colors.textTertiary, fontSize: 10, fontWeight: '700'}}>SAFE</Text>
+                <Text style={styles.scoreNumber}>
+                  {Math.max(lowPct, modPct, highPct)}%
+                </Text>
+                <Text style={{color: Colors.textTertiary, fontSize: 10, fontWeight: '700'}}>
+                  {lowPct >= modPct && lowPct >= highPct ? 'SAFE' : modPct >= highPct ? 'MODERATE' : 'HIGH'}
+                </Text>
               </View>
             </View>
 
