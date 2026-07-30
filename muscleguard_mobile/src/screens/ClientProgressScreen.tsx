@@ -154,7 +154,16 @@ export const ClientProgressScreen = ({ route, navigation }: any) => {
         {/* Prescribed Workout */}
         <GlassCard style={{ padding: 16 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <Text style={styles.statLabel}>🏋️ TODAY'S PRESCRIBED WORKOUT</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.statLabel}>🏋️ TODAY'S PRESCRIBED WORKOUT</Text>
+              {latest.weather && (
+                <View style={[styles.weatherBadge, { marginLeft: 8 }]}>
+                  <Text style={styles.weatherBadgeText}>
+                    {latest.weather === 'Sunny' ? '☀️' : latest.weather === 'Cloudy' ? '☁️' : '🌧️'} {latest.weather.toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </View>
             <View style={[styles.badge, { backgroundColor: todayWorkout.active ? 'rgba(48, 209, 88, 0.2)' : 'rgba(255, 214, 10, 0.2)' }]}>
               <Text style={[styles.badgeText, { color: todayWorkout.active ? Colors.green : Colors.yellow }]}>{todayWorkout.focus.toUpperCase()}</Text>
             </View>

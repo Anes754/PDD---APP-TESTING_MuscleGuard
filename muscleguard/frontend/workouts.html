@@ -385,7 +385,7 @@
           
           const exList = dayPlan.ex.map(([name, scheme]) => `
             <div class="ex-row" style="padding: 0.25rem 0;">
-              <span class="ex-name">💪 ${name}</span>
+              <span class="ex-name">${getWorkoutEmoji(name)} ${name}</span>
               <span class="ex-scheme">${scheme}</span>
             </div>
           `).join("");
@@ -587,5 +587,21 @@
   // Run on start
   initWorkoutPage();
 </script>
+
+<script>
+function getWorkoutEmoji(name) {
+    if (!name) return '💪';
+    const n = name.toLowerCase();
+    if (n.includes('walk') || n.includes('run') || n.includes('sprint') || n.includes('jog') || n.includes('treadmill')) return '🏃';
+    if (n.includes('stretch') || n.includes('yoga') || n.includes('mobility')) return '🧘';
+    if (n.includes('cycle') || n.includes('bike')) return '🚴';
+    if (n.includes('swim')) return '🏊';
+    if (n.includes('jump')) return '🤸';
+    if (n.includes('lift') || n.includes('press') || n.includes('squat') || n.includes('deadlift') || n.includes('curl') || n.includes('row')) return '🏋️';
+    if (n.includes('core') || n.includes('abs')) return '🔥';
+    return '💪';
+}
+</script>
+
 </body>
 </html>

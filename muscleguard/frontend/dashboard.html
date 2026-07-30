@@ -855,7 +855,7 @@
       if (workout.ex && workout.ex.length > 0) {
         listContainer.innerHTML = workout.ex.map(([name, scheme]) => `
           <div class="ex-item">
-            <span style="font-size:0.92rem; color: #f8fafc; font-weight: 600;">💪 ${name}</span>
+            <span style="font-size:0.92rem; color: #f8fafc; font-weight: 600;">${getWorkoutEmoji(name)} ${name}</span>
             <span style="font-size:0.85rem; font-family: var(--fm, monospace); color: var(--accent-cyan); font-weight: 700;">${scheme}</span>
           </div>
         `).join("");
@@ -954,6 +954,22 @@
   }
 
   init();
+</script>
+
+
+<script>
+function getWorkoutEmoji(name) {
+    if (!name) return '💪';
+    const n = name.toLowerCase();
+    if (n.includes('walk') || n.includes('run') || n.includes('sprint') || n.includes('jog') || n.includes('treadmill')) return '🏃';
+    if (n.includes('stretch') || n.includes('yoga') || n.includes('mobility')) return '🧘';
+    if (n.includes('cycle') || n.includes('bike')) return '🚴';
+    if (n.includes('swim')) return '🏊';
+    if (n.includes('jump')) return '🤸';
+    if (n.includes('lift') || n.includes('press') || n.includes('squat') || n.includes('deadlift') || n.includes('curl') || n.includes('row')) return '🏋️';
+    if (n.includes('core') || n.includes('abs')) return '🔥';
+    return '💪';
+}
 </script>
 
 </body>
